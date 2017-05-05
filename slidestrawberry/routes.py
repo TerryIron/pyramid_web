@@ -18,9 +18,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import os.path
-
 
 def includeme(config):
-    config.add_static_view('static', os.path.join(os.path.dirname(__file__), 'static'), cache_max_age=3600)
+    config.add_static_view(name='static', path='static', cache_max_age=3600)
     config.add_route('home', '/')

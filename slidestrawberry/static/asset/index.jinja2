@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head lang="zh-cn">
+<head lang="{{request.locale_name}}">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="">
@@ -26,7 +26,7 @@
 
 <body>
     <div id="main"></div>
-    <script src="static/bundle.js"></script>
+    <script src="{{request.static_url('slidestrawberry:static/asset/bundle.js')}}"></script>
 </body>
 
 </html>
