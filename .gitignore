@@ -1,3 +1,5 @@
+.idea
+.build
 build
 env
 *egg-info
