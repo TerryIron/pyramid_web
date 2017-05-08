@@ -3,3 +3,7 @@
 build
 env
 *egg-info
+*pyc
+*node_modules
+*bundle.js
+*bundle.js.map
