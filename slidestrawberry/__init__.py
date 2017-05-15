@@ -30,5 +30,6 @@ def main(global_config, **settings):
     config.include('pyramid_jinja2')
     config.include('.models')
     config.include('.routes')
+    config.configure_celery('development.ini')
     config.scan()
     return config.make_wsgi_app()
