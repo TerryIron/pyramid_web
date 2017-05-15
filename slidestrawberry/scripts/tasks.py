@@ -24,5 +24,7 @@ __author__ = 'terry'
 
 
 @app.task
-def add(x, y):
-    print x+y
+def fetch_today_news(*args, **kwargs):
+    pass
+
+fetch_today_news.delay()
