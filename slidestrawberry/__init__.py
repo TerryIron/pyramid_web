@@ -25,11 +25,12 @@ from pyramid.config import Configurator
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+    file_name = global_config.get('__file__')
     config = Configurator(settings=settings)
     config.include('pyramid_tm')
     config.include('pyramid_jinja2')
     config.include('.models')
     config.include('.routes')
-    config.configure_celery('development.ini')
+    config.configure_celery(file_name)
     config.scan()
     return config.make_wsgi_app()
