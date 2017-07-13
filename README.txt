@@ -12,3 +12,5 @@ Getting Started
 
 - $VENV/bin/pserve development.ini
 
+- python setup.py develop
+
