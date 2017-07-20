@@ -19,12 +19,9 @@
 #
 
 
+from sqlalchemy.exc import DBAPIError
 from pyramid.response import Response
 from pyramid.view import view_config
-
-from sqlalchemy.exc import DBAPIError
-
-from ..models.default import MyModel
 
 
 @view_config(route_name='home', renderer='../static/asset/index.jinja2')
