@@ -16,3 +16,4 @@ requests==2.11.1
 haystack==0.36
 whoosh==2.7.4
 zope.sqlalchemy
+happybase

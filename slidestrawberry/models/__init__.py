@@ -23,6 +23,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import configure_mappers
 import zope.sqlalchemy
+import happybase
 
 # import or define all models here to ensure they are attached to the
 # Base.metadata prior to any initialization routines
@@ -33,18 +34,67 @@ from .meta import Base as Base
 configure_mappers()
 
 
-def get_engine(settings, prefix='sqlalchemy.'):
-    return engine_from_config(settings, prefix)
+def get_pointed_value(settings, prefix):
+    for k, v in settings.items():
+        if prefix in k:
+            return v.strip()
+    return ''
+
+
+class Engine(object):
+    def __init__(self, engine, name=''):
+        self.engine = engine
+        self.name = name
+
+
+class EngineFactory(object):
+    def __init__(self, factory, name=''):
+        self.factory = factory
+        self.name = name
+
+
+def get_engine(settings, prefix='sql.'):
+    value = get_pointed_value(settings, prefix)
+    if value.startswith('hbase:'):
+        import urlparse
+        value = urlparse.urlparse(value)
+        host, port = value.netloc.split(':')
+        return Engine(happybase.Connection(host=host, port=int(port)), 'hbase')
+    else:
+        return Engine(engine_from_config(settings, prefix), 'sqlalchemy')
+
+
+def create_tables(engine, settings, prefix='model.'):
+    value = get_pointed_value(settings, prefix)
+    if not value:
+        return
+    parse_create_tables(engine, value)
+
+
+def get_mod_instances(mod):
+    _n = []
+    for d in dir(mod):
+        n = getattr(mod, d)
+        if hasattr(n, '__tablename__'):
+            _n.append(n)
+    return _n
+
+
+def parse_create_tables(engine, config):
+    if engine.name == 'hbase':
+        mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
+        mod_instances = get_mod_instances(mod)
+    else:
+        Base.metadata.create_all(engine.engine)
 
 
 def get_session_factory(engine):
-    factory = sessionmaker()
-    factory.configure(bind=engine)
-    return factory
-
-
-def create_metadata(engine):
-    Base.metadata.create_all(engine)
+    if engine.name == 'hbase':
+        return EngineFactory(engine.engine, engine.name)
+    else:
+        factory = sessionmaker()
+        factory.configure(bind=engine)
+        return EngineFactory(factory, engine.name)
 
 
 def get_tm_session(session_factory, transaction_manager):
@@ -68,17 +118,21 @@ def get_tm_session(session_factory, transaction_manager):
               dbsession = get_tm_session(session_factory, transaction.manager)
 
     """
-    dbsession = session_factory()
-    zope.sqlalchemy.register(
-        dbsession, transaction_manager=transaction_manager)
-    return dbsession
+    if session_factory.name == 'hbase':
+        session_factory.factory.open()
+        return session_factory.factory
+    else:
+        dbsession = session_factory()
+        zope.sqlalchemy.register(
+            dbsession, transaction_manager=transaction_manager)
+        return dbsession
 
 
 def includeme(config):
     """
     Initialize the model for a Pyramid app.
 
-    Activate this setup using ``config.include('slidestrawberry.models')``.
+    Activate this setup using ``config.include('WizDatacenter.models')``.
 
     """
     settings = config.get_settings()
@@ -88,7 +142,7 @@ def includeme(config):
 
     engine = get_engine(settings=settings)
     session_factory = get_session_factory(engine=engine)
-    create_metadata(engine=engine)
+    create_tables(engine=engine, settings=settings)
     config.registry['dbsession_factory'] = session_factory
 
     # make request.dbsession available for use in Pyramid
@@ -98,5 +152,3 @@ def includeme(config):
         'dbsession',
         reify=True
     )
-
-
