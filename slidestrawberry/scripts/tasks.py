@@ -27,4 +27,4 @@ __author__ = 'terry'
 def fetch_today_news(*args, **kwargs):
     pass
 
-fetch_today_news.delay()
+# fetch_today_news.delay()
