@@ -34,11 +34,37 @@ from .meta import Base as Base
 configure_mappers()
 
 
-def get_pointed_value(settings, prefix):
+def _get_pointed_value(settings, prefix):
     for k, v in settings.items():
         if prefix in k:
             return v.strip()
     return ''
+
+
+def _get_mod_tables(mod):
+    _n = []
+    for d in dir(mod):
+        n = getattr(mod, d)
+        if n and hasattr(n, '__tablename__'):
+            t = Table(getattr(n, '__tablename__'), n, [c for c in dir(n) if not c.startswith('_') and c != 'id'])
+            if t not in _n:
+                _n.append(t)
+    return _n
+
+
+def _parse_create_tables(engine, config):
+    if engine.name == 'hbase':
+        mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
+        mod_instances = _get_mod_tables(mod)
+        engine.engine.open()
+        for m in mod_instances:
+            family = {}
+            for c in m.columns:
+                if c not in family:
+                    family[c] = {}
+            engine.engine.create_table(m.name, family)
+    else:
+        Base.metadata.create_all(engine.engine)
 
 
 class Engine(object):
@@ -53,8 +79,15 @@ class EngineFactory(object):
         self.name = name
 
 
+class Table(object):
+    def __init__(self, name, inst, columns=None):
+        self.name = name
+        self.inst = inst
+        self.columns = columns
+
+
 def get_engine(settings, prefix='sql.'):
-    value = get_pointed_value(settings, prefix)
+    value = _get_pointed_value(settings, prefix)
     if value.startswith('hbase:'):
         import urlparse
         value = urlparse.urlparse(value)
@@ -65,43 +98,10 @@ def get_engine(settings, prefix='sql.'):
 
 
 def create_tables(engine, settings, prefix='model.'):
-    value = get_pointed_value(settings, prefix)
+    value = _get_pointed_value(settings, prefix)
     if not value:
         return
-    parse_create_tables(engine, value)
-
-
-class Table(object):
-    def __init__(self, name, inst, columns=None):
-        self.name = name
-        self.inst = inst
-        self.columns = columns
-
-
-def get_mod_tables(mod):
-    _n = []
-    for d in dir(mod):
-        n = getattr(mod, d)
-        if n and hasattr(n, '__tablename__'):
-            t = Table(getattr(n, '__tablename__'), n, [c for c in dir(n) if not c.startswith('_') and c != 'id'])
-            if t not in _n:
-                _n.append(t)
-    return _n
-
-
-def parse_create_tables(engine, config):
-    if engine.name == 'hbase':
-        mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
-        mod_instances = get_mod_tables(mod)
-        engine.engine.open()
-        for m in mod_instances:
-            family = {}
-            for c in m.columns:
-                if c not in family:
-                    family[c] = {}
-            engine.engine.create_table(m.name, family)
-    else:
-        Base.metadata.create_all(engine.engine)
+    _parse_create_tables(engine, value)
 
 
 def get_session_factory(engine):
