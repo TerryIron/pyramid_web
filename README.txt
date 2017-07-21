@@ -8,9 +8,10 @@ Getting Started
 
 - $VENV/bin/pip install -e .
 
-- $VENV/bin/initialize_slidestrawberry_db development.ini
+- python setup.py develop
+
+- $VENV/bin/initialize_db development.ini
 
 - $VENV/bin/pserve development.ini
 
-- python setup.py develop
-
+- $VENV/bin/celery worker -A pyramid_celery.celery_app --ini development.ini

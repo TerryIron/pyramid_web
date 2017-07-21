@@ -50,6 +50,6 @@ setup(name='slidestrawberry',
       [paste.app_factory]
       main = slidestrawberry:main
       [console_scripts]
-      initialize_slidestrawberry_db = slidestrawberry.scripts.initializedb:main
+      initialize_db = slidestrawberry.scripts.initializedb:main
       """,
       )
