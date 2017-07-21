@@ -57,12 +57,14 @@ def _parse_create_tables(engine, config):
         mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
         mod_instances = _get_mod_tables(mod)
         engine.engine.open()
+        _tables = engine.engine.tables()
         for m in mod_instances:
-            family = {}
-            for c in m.columns:
-                if c not in family:
-                    family[c] = {}
-            engine.engine.create_table(m.name, family)
+            if m.name not in _tables:
+                family = {}
+                for c in m.columns:
+                    if c not in family:
+                        family[c] = {}
+                engine.engine.create_table(m.name, family)
     else:
         Base.metadata.create_all(engine.engine)
 
