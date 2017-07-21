@@ -8,7 +8,7 @@ Getting Started
 
 - $VENV/bin/pip install -e .
 
-- python setup.py develop
+- $VENV/bin/python setup.py develop
 
 - $VENV/bin/initialize_db development.ini
 
