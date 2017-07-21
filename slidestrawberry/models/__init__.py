@@ -71,19 +71,35 @@ def create_tables(engine, settings, prefix='model.'):
     parse_create_tables(engine, value)
 
 
-def get_mod_instances(mod):
+class Table(object):
+    def __init__(self, name, inst, columns=None):
+        self.name = name
+        self.inst = inst
+        self.columns = columns
+
+
+def get_mod_tables(mod):
     _n = []
     for d in dir(mod):
         n = getattr(mod, d)
-        if hasattr(n, '__tablename__'):
-            _n.append(n)
+        if n and hasattr(n, '__tablename__'):
+            t = Table(getattr(n, '__tablename__'), n, [c for c in dir(n) if not c.startswith('_') and c != 'id'])
+            if t not in _n:
+                _n.append(t)
     return _n
 
 
 def parse_create_tables(engine, config):
     if engine.name == 'hbase':
         mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
-        mod_instances = get_mod_instances(mod)
+        mod_instances = get_mod_tables(mod)
+        engine.engine.open()
+        for m in mod_instances:
+            family = {}
+            for c in m.columns:
+                if c not in family:
+                    family[c] = {}
+            engine.engine.create_table(m.name, family)
     else:
         Base.metadata.create_all(engine.engine)
 
