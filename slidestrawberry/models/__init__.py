@@ -19,7 +19,7 @@
 #
 
 
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import configure_mappers
 import zope.sqlalchemy
@@ -91,12 +91,20 @@ class Table(object):
 def get_engine(settings, prefix='sql.'):
     value = _get_pointed_value(settings, prefix)
     if value.startswith('hbase:'):
-        import urlparse
-        value = urlparse.urlparse(value)
-        host, port = value.netloc.split(':')
-        return Engine(happybase.Connection(host=host, port=int(port)), 'hbase')
+        return get_hbase_engine(value)
     else:
         return Engine(engine_from_config(settings, prefix), 'sqlalchemy')
+
+
+def get_hbase_engine(url):
+    import urlparse
+    url = urlparse.urlparse(url)
+    host, port = url.netloc.split(':')
+    return Engine(happybase.Connection(host=host, port=int(port)), 'hbase')
+
+
+def get_sqlalchemy_engine(url):
+    return Engine(create_engine(url), 'sqlalchemy')
 
 
 def create_tables(engine, settings, prefix='model.'):
