@@ -34,6 +34,10 @@ from .meta import Base as Base
 configure_mappers()
 
 
+__all__ = ['Engine', 'EngineFactory', 'Table', 'get_engine', 'get_sqlalchemy_engine', 'get_hbase_engine',
+           'create_tables', 'get_session_factory', 'get_tm_session']
+
+
 def _get_pointed_value(settings, prefix):
     for k, v in settings.items():
         if prefix in k:
