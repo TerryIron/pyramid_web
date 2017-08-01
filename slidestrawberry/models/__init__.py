@@ -35,7 +35,7 @@ configure_mappers()
 
 
 __all__ = ['Engine', 'EngineFactory', 'Table', 'get_engine', 'get_sqlalchemy_engine', 'get_hbase_engine',
-           'create_tables', 'get_session_factory', 'get_tm_session']
+           'create_tables', 'get_session_factory', 'get_tm_session', 'get_mod_tables']
 
 
 def _get_pointed_value(settings, prefix):
@@ -45,7 +45,7 @@ def _get_pointed_value(settings, prefix):
     return ''
 
 
-def _get_mod_tables(mod):
+def get_mod_tables(mod):
     _n = []
     for d in dir(mod):
         n = getattr(mod, d)
@@ -59,7 +59,7 @@ def _get_mod_tables(mod):
 def _parse_create_tables(engine, config):
     if engine.name == 'hbase':
         mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
-        mod_instances = _get_mod_tables(mod)
+        mod_instances = get_mod_tables(mod)
         engine.engine.open()
         _tables = engine.engine.tables()
         for m in mod_instances:
