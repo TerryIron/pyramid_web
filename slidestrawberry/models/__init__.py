@@ -50,7 +50,7 @@ def get_mod_tables(mod):
     for d in dir(mod):
         n = getattr(mod, d)
         if n and hasattr(n, '__tablename__'):
-            t = Table(getattr(n, '__tablename__'), n, [c for c in dir(n) if not c.startswith('_') and c != 'id'])
+            t = Table(n)
             if t not in _n:
                 _n.append(t)
     return _n
@@ -86,10 +86,10 @@ class EngineFactory(object):
 
 
 class Table(object):
-    def __init__(self, name, inst, columns=None):
-        self.name = name
+    def __init__(self, inst):
+        self.name = getattr(inst, '__tablename__')
         self.inst = inst
-        self.columns = columns
+        self.columns = [c for c in dir(inst) if not c.startswith('_') and c != 'id']
 
 
 def get_engine(settings, prefix='sql.'):
