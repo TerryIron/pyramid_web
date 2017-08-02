@@ -89,7 +89,7 @@ class Table(object):
     def __init__(self, inst):
         self.name = getattr(inst, '__tablename__')
         self.inst = inst
-        self.columns = [c for c in dir(inst) if not c.startswith('_') and c != 'id']
+        self.columns = [c for c in dir(inst) if not c.startswith('_') and c != 'id' and c != 'metadata']
 
 
 def get_engine(settings, prefix='sql.'):
