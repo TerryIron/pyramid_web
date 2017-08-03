@@ -21,7 +21,6 @@
 import os
 import urlparse
 import logging
-# import commands
 import subprocess
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession
@@ -101,14 +100,16 @@ def hbase_handle(spark_master, uri, raw=False):
 # run with Python Scripts
 
 
-def start_spark_app(spark_bin, spark_master, url, script_name, packages=None, 
-                    cache_dir=None, ext_args=None):
+def start_spark_app(spark_bin, spark_master, url, script_name, packages=None,
+                    tables=None, cache_dir=None, ext_args=None):
     if not os.path.exists(script_name):
         raise Exception('File {0} not exist!'.format(script_name))
     _cmd = ' '.join([spark_bin, '--master', spark_master])
     _url = urlparse.urlparse(url)
     if _url.scheme == 'mongodb':
-        _cmd = ' '.join([_cmd, '--conf spark.mongodb.input.uri=' + url, '--conf spark.mongodb.output.uri=' + url])
+        _cmd = ' '.join([_cmd,
+                         '--conf spark.mongodb.input.uri=' + url,
+                         '--conf spark.mongodb.output.uri=' + url])
     elif _url.scheme == 'hbase':
         return
     else:
@@ -121,6 +122,9 @@ def start_spark_app(spark_bin, spark_master, url, script_name, packages=None,
         if _p:
             _cmd += ' --packages ' + _p
     _cmd += ' ' + script_name + ' run'
+    _cmd += ' '.join([' --base-db', '.'.join(url.split('.')[:-1])])
+    if tables and isinstance(tables, list):
+        _cmd += ' '.join([' --base-table', ','.join(tables)])
     if cache_dir:
         if not os.path.exists(cache_dir):
             os.mkdir(cache_dir)
@@ -131,27 +135,4 @@ def start_spark_app(spark_bin, spark_master, url, script_name, packages=None,
             if _k and _v:
                 _cmd += ' --' + _k + ' ' + _v
     logger.debug('Command:{0}'.format(_cmd))
-    # logger.info(commands.getoutput(_cmd))
     subprocess.call(_cmd, shell=True)
-
-
-if __name__ == "__main__":
-    DEV_TASK = {
-        'read_dev_data': os.path.join(os.path.dirname(__file__), 'read_dev_data.py'),
-        'write_dev_data': os.path.join(os.path.dirname(__file__), 'write_dev_data.py'),
-    }
-
-    DEV_TASK_CACHE = os.path.join(os.path.dirname(__file__), 'data_dir')
-
-    start_spark_app('/media/terry/Transcend/source/workspace/wizcloud/test/spark_server/spark/bin/spark-submit', 
-                    'local', 'mongodb://127.0.0.1:27017/accesskey.wuchj_test', DEV_TASK['read_dev_data'],
-                    packages=['org.mongodb.spark:mongo-spark-connector_2.11:2.1.0'],
-                    cache_dir=DEV_TASK_CACHE)
-
-    # spark = mongo_handle('local',
-    #                      'mongodb://127.0.0.1:27017/accesskey.wuchj_test',
-    #                      'org.mongodb.spark:mongo-spark-connector_2.11:2.1.0',
-    #                      raw=True)
-
-    # pipeline = "{'$match': {'Version': '1.0'}}"
-    # df = spark.read.format("com.mongodb.spark.sql.DefaultSource").option("pipeline", pipeline).load()

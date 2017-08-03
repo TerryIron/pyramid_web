@@ -78,6 +78,10 @@ class SparkShell(VShell):
                                                 u'sql->spark.sql函数')
         command.install_argument(['--cache-dir'], 'cache_dir', default='temp_dir',
                                  help_text=u'脚本临时数据目录')
-        command.install_argument(['--config-db'], 'config_db', default=None,
+        command.install_argument(['--config-db'], 'config_db', default='',
                                  help_text=u'脚本配置表')
+        command.install_argument(['--base-db'], 'base_db', default='',
+                                 help_text=u'脚本数据库源')
+        command.install_argument(['--base-table'], 'base_table', default='',
+                                 help_text=u'脚本数据表源')
         return command
