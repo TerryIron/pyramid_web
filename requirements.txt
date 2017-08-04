@@ -1,19 +1,23 @@
+cython
+thriftpy
 pyramid==1.8
-pyramid_jinja2
-pyramid_tm
-pyramid_beaker
-pyramid_celery
-pyramid_debugtoolbar
-waitress
-WebTest >= 1.3.1
-pytest
-pytest-cov
-gunicorn
 SQLAlchemy==1.1.9
 mysqlclient==1.3.9
 redis==2.10.5
 requests==2.11.1
 haystack==0.36
 whoosh==2.7.4
+pyramid_jinja2
+pyramid_tm
+pyramid_beaker
+pyramid_celery
+celery_once
+pyramid_debugtoolbar
+waitress
+WebTest >= 1.3.1
+pytest
+pytest-cov
+gunicorn
 zope.sqlalchemy
 happybase
+pyspark==2.1.0

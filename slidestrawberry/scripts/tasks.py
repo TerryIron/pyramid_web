@@ -19,12 +19,21 @@
 #
 
 from pyramid_celery import celery_app as app
+from celery_once import QueueOnce
 
 __author__ = 'terry'
 
+app.conf.ONCE = {
+    'backend': 'celery_once.backends.Redis',
+    'settings': {
+        'url': app.conf['BROKER_URL'],
+        'default_timeout': 60 * 60
+    }
+}
 
-@app.task
+
+@app.task(base=QueueOnce)
 def fetch_today_news(*args, **kwargs):
     pass
 
-# fetch_today_news.delay()
+# fetch_today_news.delay(base=QueueOnce)
