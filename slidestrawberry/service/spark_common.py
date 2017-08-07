@@ -118,9 +118,9 @@ def start_spark_app(spark_bin, spark_master, url, script_name, packages=None,
         _packages = []
     else:
         _packages = [_p for _p in packages if _p] if isinstance(packages, str) else packages
-    for _p in _packages:
-        if _p:
-            _cmd += ' --packages ' + _p
+    _packages.append('com.databricks:spark-csv_2.10:1.5.0')
+    if _packages:
+        _cmd += ' --packages ' + ','.join(_packages)
     _cmd += ' ' + script_name + ' run'
     _cmd += ' '.join([' --base-db', '.'.join(url.split('.')[:-1])])
     if tables and isinstance(tables, list):
