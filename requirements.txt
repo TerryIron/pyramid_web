@@ -1,6 +1,7 @@
 cython
 thriftpy
 pyramid==1.8.5
+geoalchemy2
 SQLAlchemy==1.1.9
 mysqlclient==1.3.9
 redis==2.10.5
