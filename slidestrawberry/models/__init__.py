@@ -75,8 +75,14 @@ def _parse_create_tables(engine, config):
 
 class Engine(object):
     def __init__(self, engine, name=''):
-        self.engine = engine
+        self._engine = engine
         self.name = name
+
+    @property
+    def engine(self):
+        if hasattr(self._engine, 'open'):
+            self._engine.open()
+        return self._engine
 
 
 class EngineFactory(object):
@@ -104,7 +110,7 @@ def get_hbase_engine(url):
     import urlparse
     url = urlparse.urlparse(url)
     host, port = url.netloc.split(':')
-    return Engine(happybase.Connection(host=host, port=int(port)), 'hbase')
+    return Engine(happybase.Connection(host=host, port=int(port), autoconnect=False), 'hbase')
 
 
 def get_sqlalchemy_engine(url):
