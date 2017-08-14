@@ -114,7 +114,7 @@ def get_hbase_engine(url):
 
 
 def get_sqlalchemy_engine(url):
-    return Engine(create_engine(url), 'sqlalchemy')
+    return Engine(sessionmaker(bind=create_engine(url)), 'sqlalchemy')
 
 
 def create_tables(engine, settings, prefix='model.'):
