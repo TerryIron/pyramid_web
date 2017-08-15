@@ -19,6 +19,13 @@
 #
 
 
+def with_version(version_id, name):
+    if '/' in name:
+        return '/' + str(version_id) + str(name)
+    else:
+        return str(name) + '_' + str(version_id)
+
+
 def includeme(config):
     config.add_static_view(name='static', path='static', cache_max_age=3600)
     config.add_route('home', '/')
