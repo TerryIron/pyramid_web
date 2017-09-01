@@ -21,6 +21,7 @@
 from pyramid.response import Response
 import functools
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -36,10 +37,12 @@ def filter_response(func):
     @functools.wraps(func)
     def _filter_response(*args, **kwargs):
         try:
-            return func(*args, **kwargs)
+            root_factory, request = args
+            return func(request)
         except Exception as e:
-            logger.error(e)
-            return Response(status=500, body=[])
+            import traceback
+            logger.error(traceback.format_exc())
+            return Response(json.dumps([]), 500)
     return _filter_response
 
 
