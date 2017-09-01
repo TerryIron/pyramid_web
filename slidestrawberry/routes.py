@@ -18,6 +18,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from pyramid.response import Response
+import functools
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def with_version(version_id, name):
     if '/' in name:
@@ -26,6 +32,24 @@ def with_version(version_id, name):
         return str(name) + '_' + str(version_id)
 
 
+def filter_response(func):
+    @functools.wraps(func)
+    def _filter_response(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logger.error(e)
+            return Response(status=500, body=[])
+    return _filter_response
+
+
 def includeme(config):
     config.add_static_view(name='static', path='static', cache_max_age=3600)
     config.add_route('home', '/')
+    # -- 数据API --
+    _version = '1.0'
+    # 数据统计
+    config.add_route(with_version(_version, 'energy_count'), with_version(_version, '/energy_count'))
+    config.add_route(with_version(_version, 'security_count'), with_version(_version, '/security_count'))
+    config.add_route(with_version(_version, 'pms_count'), with_version(_version, '/pms_count'))
+    config.add_route(with_version(_version, 'firealarm_count'), with_version(_version, '/firealarm_count'))
