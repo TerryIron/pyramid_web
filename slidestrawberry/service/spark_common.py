@@ -105,15 +105,27 @@ def start_spark_app(spark_bin, spark_master, url, script_name, packages=None,
     if not os.path.exists(script_name):
         raise Exception('File {0} not exist!'.format(script_name))
     _cmd = ' '.join([spark_bin, '--master', spark_master])
-    _url = urlparse.urlparse(url)
-    if _url.scheme == 'mongodb':
-        _cmd = ' '.join([_cmd,
-                         '--conf spark.mongodb.input.uri=' + url,
-                         '--conf spark.mongodb.output.uri=' + url])
-    elif _url.scheme == 'hbase':
-        return
+
+    def parse_db_type(db_url, cmd_line):
+        _d = urlparse.urlparse(db_url)
+        if _d.scheme == 'mongodb':
+            _cmd_line = ' '.join([cmd_line,
+                                  '--conf spark.mongodb.input.uri=' + db_url,
+                                  '--conf spark.mongodb.output.uri=' + db_url])
+            return _cmd_line
+        elif _d.scheme == 'hbase':
+            return
+        else:
+            return
+
+    _url_keys = []
+    if not isinstance(url, dict):
+        _cmd = parse_db_type(url, _cmd)
     else:
-        return
+        _url_keys = url.keys()
+        _url_keys.sort()
+        _cmd = parse_db_type(url[_url_keys[0]], _cmd)
+
     if not packages:
         _packages = []
     else:
@@ -121,10 +133,18 @@ def start_spark_app(spark_bin, spark_master, url, script_name, packages=None,
     _packages.append('com.databricks:spark-csv_2.10:1.5.0')
     if _packages:
         _cmd += ' --packages ' + ','.join(_packages)
+
     _cmd += ' ' + script_name + ' run'
-    _cmd += ' '.join([' --base-db', '.'.join(url.split('.')[:-1])])
-    if tables and isinstance(tables, list):
-        _cmd += ' '.join([' --base-table', ','.join(tables)])
+    if _url_keys:
+        _cmd += ' '.join([' --base-db', '^'.join(['.'.join(url[_key].split('.')[:-1]) for _key in _url_keys])])
+    else:
+        _cmd += ' '.join([' --base-db', '.'.join(url.split('.')[:-1])])
+    if tables:
+        if isinstance(tables, list):
+            _cmd += ' '.join([' --base-table', ','.join(tables)])
+        elif isinstance(tables, dict):
+            _cmd += ' '.join([' --base-table', '^'.join([','.join(tables[_key]) for _key in _url_keys
+                                                         if _key in tables])])
     if cache_dir:
         if not os.path.exists(cache_dir):
             os.mkdir(cache_dir)
