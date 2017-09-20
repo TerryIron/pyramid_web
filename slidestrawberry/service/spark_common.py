@@ -130,7 +130,7 @@ def start_spark_app(spark_bin, url, script_name, packages=None, drivers=None, ta
     if _packages:
         _cmd += ' --packages ' + ','.join(_packages)
     if drivers:
-        _cmd += ' --driver-class-path' + ','.join(_drivers)
+        _cmd += ' --driver-class-path ' + ','.join([_driver for _driver in drivers if os.path.exists(_driver)])
 
     _cmd += ' ' + script_name + ' run'
     if _url_keys:
