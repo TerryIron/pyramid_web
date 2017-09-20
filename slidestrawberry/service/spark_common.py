@@ -22,6 +22,8 @@ import os
 import urlparse
 import logging
 import subprocess
+import bson
+import base64
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession
 
@@ -98,10 +100,8 @@ def hbase_handle(spark_master, uri, raw=False):
 
 
 # run with Python Scripts
-
-
-def start_spark_app(spark_bin, spark_master, url, script_name, packages=None,
-                    tables=None, cache_dir=None, ext_args=None):
+def start_spark_app(spark_bin, url, script_name, packages=None, drivers=None, tables=None, cache_dir=None,
+                    ext_args=None, spark_master='local'):
     if not os.path.exists(script_name):
         raise Exception('File {0} not exist!'.format(script_name))
     _cmd = ' '.join([spark_bin, '--master', spark_master])
@@ -113,10 +113,6 @@ def start_spark_app(spark_bin, spark_master, url, script_name, packages=None,
                                   '--conf spark.mongodb.input.uri=' + db_url,
                                   '--conf spark.mongodb.output.uri=' + db_url])
             return _cmd_line
-        elif _d.scheme == 'hbase':
-            return
-        else:
-            return
 
     _url_keys = []
     if not isinstance(url, dict):
@@ -133,6 +129,8 @@ def start_spark_app(spark_bin, spark_master, url, script_name, packages=None,
     _packages.append('com.databricks:spark-csv_2.10:1.5.0')
     if _packages:
         _cmd += ' --packages ' + ','.join(_packages)
+    if drivers:
+        _cmd += ' --driver-class-path' + ','.join(_drivers)
 
     _cmd += ' ' + script_name + ' run'
     if _url_keys:
@@ -149,10 +147,15 @@ def start_spark_app(spark_bin, spark_master, url, script_name, packages=None,
         if not os.path.exists(cache_dir):
             os.mkdir(cache_dir)
         _cmd += ' '.join([' --cache-dir', cache_dir])
+    if isinstance(url, dict):
+        _cmd += ' --db-map ' + base64.b64encode(bson.dumps(url))
     if ext_args and isinstance(ext_args, dict):
         for _k, _v in ext_args.items():
             _k = '-'.join(_k.split('_'))
             if _k and _v:
-                _cmd += ' --' + _k + ' ' + _v
+                if isinstance(_v, dict):
+                    _cmd += ' --' + _k + ' ' + base64.b64encode(bson.dumps(_v))
+                else:
+                    _cmd += ' --' + _k + ' ' + _v
     logger.debug('Command:{0}'.format(_cmd))
     subprocess.call(_cmd, shell=True)
