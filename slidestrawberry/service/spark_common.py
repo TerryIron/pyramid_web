@@ -113,6 +113,8 @@ def start_spark_app(spark_bin, url, script_name, packages=None, drivers=None, ta
                                   '--conf spark.mongodb.input.uri=' + db_url,
                                   '--conf spark.mongodb.output.uri=' + db_url])
             return _cmd_line
+        else:
+            return cmd_line
 
     _url_keys = []
     if not isinstance(url, dict):
@@ -134,9 +136,19 @@ def start_spark_app(spark_bin, url, script_name, packages=None, drivers=None, ta
 
     _cmd += ' ' + script_name + ' run'
     if _url_keys:
-        _cmd += ' '.join([' --base-db', '^'.join(['.'.join(url[_key].split('.')[:-1]) for _key in _url_keys])])
+        _url_list = []
+        for _key in _url_keys:
+            _url = url[_key]
+            if len(_url.split('.')) > 3:
+                _url_list.append('.'.join(_url.split('.')[:-1]))
+            else:
+                _url_list.append(_url)
+        _cmd += ' '.join([' --base-db', '^'.join(_url_list)])
     else:
-        _cmd += ' '.join([' --base-db', '.'.join(url.split('.')[:-1])])
+        if len(url.split('.')) > 3:
+            _cmd += ' '.join([' --base-db', '.'.join(url.split('.')[:-1])])
+        else:
+            _cmd += ' '.join([' --base-db', url])
     if tables:
         if isinstance(tables, list):
             _cmd += ' '.join([' --base-table', ','.join(tables)])
