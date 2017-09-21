@@ -25,7 +25,7 @@ import subprocess
 import bson
 import base64
 from pyspark import SparkConf, SparkContext
-from pyspark.sql import SparkSession
+from pyspark.sql import SparkSession, SQLContext
 
 __author__ = 'terry'
 
@@ -172,3 +172,20 @@ def start_spark_app(spark_bin, url, script_name, packages=None, drivers=None, ta
                     _cmd += ' --' + _k + ' ' + _v
     logger.debug('Command:{0}'.format(_cmd))
     subprocess.call(_cmd, shell=True)
+
+
+def spark_data_frame(spark_session, db, table):
+    _d = urlparse.urlparse(db)
+    if _d.scheme == 'mongodb':
+        _frame = spark_session.read.format("com.mongodb.spark.sql.DefaultSource").\
+            option('uri', '.'.join([db, table]))
+        # return spark_session.read.format("com.mongodb.spark.sql.DefaultSource").\
+        #     option('uri', '.'.join([db, table])). \
+        #     option('pipeline', pipeline)
+    elif _d.scheme == 'sqlserver':
+        _sqlcontext = SQLContext(spark_session.sparkContext)
+        _frame = _sqlcontext.read.format('jdbc').options(
+            url='jdbc:' + db,
+            driver='com.microsoft.sqlserver.jdbc.SQLServerDriver',
+            dbtable=table)
+    return _frame, _d.scheme
