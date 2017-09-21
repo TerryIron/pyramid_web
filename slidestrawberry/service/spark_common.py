@@ -139,16 +139,17 @@ def start_spark_app(spark_bin, url, script_name, packages=None, drivers=None, ta
         _url_list = []
         for _key in _url_keys:
             _url = url[_key]
-            if len(_url.split('.')) > 3:
+            if len(_url.split('.')) > 4:
                 _url_list.append('.'.join(_url.split('.')[:-1]))
             else:
                 _url_list.append(_url)
-        _cmd += ' '.join([' --base-db', '^'.join(_url_list)])
+        _url_list_key = '^'.join(_url_list)
+        _cmd += ' '.join([' --base-db', base64.b64encode(_url_list_key)])
     else:
-        if len(url.split('.')) > 3:
-            _cmd += ' '.join([' --base-db', '.'.join(url.split('.')[:-1])])
+        if len(url.split('.')) > 4:
+            _cmd += ' '.join([' --base-db', base64.b64encode('.'.join(url.split('.')[:-1]))])
         else:
-            _cmd += ' '.join([' --base-db', url])
+            _cmd += ' '.join([' --base-db', base64.b64encode(url)])
     if tables:
         if isinstance(tables, list):
             _cmd += ' '.join([' --base-table', ','.join(tables)])

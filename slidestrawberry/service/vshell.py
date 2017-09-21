@@ -81,7 +81,7 @@ class SparkShell(VShell):
         command.install_argument(['--config-db'], 'config_db', default='',
                                  help_text=u'脚本配置表')
         command.install_argument(['--base-db'], 'base_db', default='',
-                                 help_text=u'脚本数据库源')
+                                 help_text=u'脚本数据库源, base64加码')
         command.install_argument(['--base-table'], 'base_table', default='',
                                  help_text=u'脚本数据表源')
         command.install_argument(['--db-map'], 'db_map', default={},
