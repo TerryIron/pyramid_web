@@ -60,15 +60,16 @@ def _parse_create_tables(engine, config):
     if engine.name == 'hbase':
         mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
         mod_instances = get_mod_tables(mod)
-        engine.engine.open()
-        _tables = engine.engine.tables()
+        _engine = engine.engine()
+        _engine.open()
+        _tables = _engine.tables()
         for m in mod_instances:
             if m.name not in _tables:
                 family = {}
                 for c in m.columns:
                     if c not in family:
                         family[c] = {}
-                engine.engine.create_table(m.name, family)
+                _engine.create_table(m.name, family)
     else:
         Base.metadata.create_all(engine.engine)
 
@@ -110,7 +111,7 @@ def get_hbase_engine(url):
     import urlparse
     url = urlparse.urlparse(url)
     host, port = url.netloc.split(':')
-    return Engine(happybase.Connection(host=host, port=int(port), autoconnect=False), 'hbase')
+    return Engine(lambda: happybase.Connection(host=host, port=int(port), autoconnect=False), 'hbase')
 
 
 def get_sqlalchemy_engine(url):
@@ -155,8 +156,9 @@ def get_tm_session(session_factory, transaction_manager):
 
     """
     if session_factory.name == 'hbase':
-        session_factory.factory.open()
-        return session_factory.factory
+        dbsession = session_factory.factory()
+        dbsession.open()
+        return dbsession
     else:
         dbsession = session_factory()
         zope.sqlalchemy.register(

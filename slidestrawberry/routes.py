@@ -20,8 +20,8 @@
 
 from pyramid.response import Response
 import functools
-import logging
 import json
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -38,21 +38,22 @@ def filter_response(func):
     def _filter_response(*args, **kwargs):
         try:
             root_factory, request = args
+            request.response.headers['Access-Control-Allow-Origin'] = '*'
             return func(request)
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
-            return Response(json.dumps([]), 500)
+            return Response(json.dumps([]), 500,
+                            headers={'Content-Type': 'application/json',
+                                     'Access-Control-Allow-Origin': '*'})
     return _filter_response
 
 
 def includeme(config):
     config.add_static_view(name='static', path='static', cache_max_age=3600)
     config.add_route('home', '/')
-    # -- 数据API --
+    # -- API版本 --
     _version = '1.0'
-    # 数据统计
-    config.add_route(with_version(_version, 'energy_count'), with_version(_version, '/energy_count'))
-    config.add_route(with_version(_version, 'security_count'), with_version(_version, '/security_count'))
-    config.add_route(with_version(_version, 'pms_count'), with_version(_version, '/pms_count'))
-    config.add_route(with_version(_version, 'firealarm_count'), with_version(_version, '/firealarm_count'))
+
+    config.add_route(with_version(_version, 'test'), with_version(_version, '/test'))
+
