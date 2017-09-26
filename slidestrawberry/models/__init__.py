@@ -60,16 +60,14 @@ def _parse_create_tables(engine, config):
     if engine.name == 'hbase':
         mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
         mod_instances = get_mod_tables(mod)
-        _engine = engine.engine()
-        _engine.open()
-        _tables = _engine.tables()
+        _tables = engine.engine.tables()
         for m in mod_instances:
             if m.name not in _tables:
                 family = {}
                 for c in m.columns:
                     if c not in family:
                         family[c] = {}
-                _engine.create_table(m.name, family)
+                engine.engine.create_table(m.name, family)
     else:
         Base.metadata.create_all(engine.engine)
 
@@ -80,11 +78,15 @@ class Engine(object):
         self.name = name
 
     @property
-    def engine(self):
-        if hasattr(self._engine, 'open'):
-            self._engine.open()
+    def engine_factory(self):
         return self._engine
 
+    @property
+    def engine(self):
+        _instance = self._engine if not callable(self._engine) else self._engine()
+        if hasattr(_instance, 'open') and callable(getattr(_instance, 'open')):
+            _instance.open()
+        return _instance
 
 class EngineFactory(object):
     def __init__(self, factory, name=''):
@@ -127,7 +129,7 @@ def create_tables(engine, settings, prefix='model.'):
 
 def get_session_factory(engine):
     if engine.name == 'hbase':
-        return EngineFactory(engine.engine, engine.name)
+        return EngineFactory(engine.engine_factory, engine.name)
     else:
         factory = sessionmaker()
         factory.configure(bind=engine)
