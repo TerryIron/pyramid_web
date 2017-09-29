@@ -19,10 +19,10 @@
 #
 
 import os
+import json
 import urlparse
 import logging
 import subprocess
-import bson
 import base64
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession, SQLContext
@@ -160,14 +160,15 @@ def start_spark_app(spark_bin, url, script_name, packages=None, drivers=None, ta
         if not os.path.exists(cache_dir):
             os.mkdir(cache_dir)
         _cmd += ' '.join([' --cache-dir', cache_dir])
+
     if isinstance(url, dict):
-        _cmd += ' --db-map ' + base64.b64encode(bson.dumps(url))
+        _cmd += ' --db-map ' + base64.b64encode(json.dumps(url))
     if ext_args and isinstance(ext_args, dict):
         for _k, _v in ext_args.items():
             _k = '-'.join(_k.split('_'))
             if _k and _v:
                 if isinstance(_v, dict):
-                    _cmd += ' --' + _k + ' ' + base64.b64encode(bson.dumps(_v))
+                    _cmd += ' --' + _k + ' ' + base64.b64encode(json.dumps(_v))
                 else:
                     _cmd += ' --' + _k + ' ' + _v
     logger.debug('Command:{0}'.format(_cmd))
