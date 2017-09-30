@@ -111,9 +111,8 @@ def get_engine(settings, prefix='sql.'):
 
 def get_hbase_engine(url):
     import urlparse
-    url = urlparse.urlparse(url)
-    host, port = url.netloc.split(':')
-    return Engine(lambda: happybase.Connection(host=host, port=int(port), autoconnect=False), 'hbase')
+    _p = urlparse.urlparse(url)
+    return Engine(lambda: happybase.Connection(host=host, port=int(_p.port), autoconnect=False), 'hbase')
 
 
 def get_sqlalchemy_engine(url):

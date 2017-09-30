@@ -81,8 +81,9 @@ def _get_handle(uri, raw=False):
     if raw:
         return _spark
     else:
-        _host = urlparse.urlparse(uri).netloc.split(':')[0]
-        return Handle(_spark, _host)
+        _p = urlparse.urlparse(uri)
+        # _host = urlparse.urlparse(uri).netloc.split(':')[0]
+        return Handle(_spark, _p.hostname)
 
 
 def mongo_handle(spark_master, uri, package_name, raw=False):
