@@ -112,7 +112,7 @@ def get_engine(settings, prefix='sql.'):
 def get_hbase_engine(url):
     import urlparse
     _p = urlparse.urlparse(url)
-    return Engine(lambda: happybase.Connection(host=host, port=int(_p.port), autoconnect=False), 'hbase')
+    return Engine(lambda: happybase.Connection(host=_p.hostname, port=int(_p.port), autoconnect=False), 'hbase')
 
 
 def get_sqlalchemy_engine(url):
