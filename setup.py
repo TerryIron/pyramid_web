@@ -29,6 +29,8 @@ with open(os.path.join(here, 'README.md')) as f:
 with open(os.path.join(here, 'CHANGELOG.md')) as f:
     CHANGES = f.read()
 
+import slidestrawberry
+
 requires = [
     'pyramid',
     'pyramid_jinja2',
@@ -47,7 +49,7 @@ tests_require = [
     ]
 
 setup(name='slidestrawberry',
-      version='0.0',
+      version='.'.join([str(v) for v in WizDatacenter.__version__]),
       description='slidestrawberry',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[

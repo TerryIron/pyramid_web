@@ -20,10 +20,14 @@
 
 
 from pyramid.config import Configurator
+from pyramid_celery import celery_app as app
+
+
+__version__ = (0, 1, 0)
 
 
 def main(global_config, **settings):
-    """ This function returns a Pyramid WSGI application.
+    """ This functionreturns a Pyramid WSGI application.
     """
     file_name = global_config.get('__file__')
     config = Configurator(settings=settings)
@@ -32,5 +36,6 @@ def main(global_config, **settings):
     config.include('.models')
     config.include('.routes')
     config.configure_celery(file_name)
+    app.ONE = {}
     config.scan()
     return config.make_wsgi_app()
