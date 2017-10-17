@@ -178,13 +178,8 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
 
 def spark_data_frame(spark_session, db, table, cmd=None):
 
-    # def _check_table_is_available(_tb_name):
-    #     if len(_tb_name) >=4 and _tb_name[:2] == '__' and _tb_name[-2:] == '__':
-    #         return False
-    #     else:
-    #         return True
-
     _d = urlparse.urlparse(db)
+    _sqlcontext = SQLContext(spark_session.sparkContext)
     if _d.scheme == 'mongodb':
         _frame = spark_session.read.format("com.mongodb.spark.sql.DefaultSource").\
             option('uri', '.'.join([db, table]))
@@ -192,21 +187,36 @@ def spark_data_frame(spark_session, db, table, cmd=None):
         #     option('uri', '.'.join([db, table])). \
         #     option('pipeline', pipeline)
     elif _d.scheme == 'sqlserver':
-        _sqlcontext = SQLContext(spark_session.sparkContext)
-        # if _check_table_is_available(table):
+        _driver = 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
         if not cmd:
             _frame = _sqlcontext.read.format('jdbc').options(
                 url='jdbc:' + db,
-                driver='com.microsoft.sqlserver.jdbc.SQLServerDriver',
+                driver=_driver,
                 dbtable=table)
         else:
             _frame = _sqlcontext.read.format('jdbc').options(
                 url='jdbc:' + db,
-                driver='com.microsoft.sqlserver.jdbc.SQLServerDriver',
+                driver=_driver,
                 dbtable='({0}) as {1}'.format(cmd, table),
                 lowerBound='10001',
                 upperBound='499999',
                 numPartitions='10')
+    elif _d.scheme == 'mysql':
+        _driver = 'com.mysql.jdbc.Driver'
+        if not cmd:
+            _frame = _sqlcontext.read.format('jdbc').options(
+                url='jdbc:' + db,
+                driver=_driver,
+                dbtable=table)
+        else:
+            _frame = _sqlcontext.read.format('jdbc').options(
+                url='jdbc:' + db,
+                driver=_driver,
+                dbtable='({0}) as {1}'.format(cmd, table),
+                lowerBound='10001',
+                upperBound='499999',
+                numPartitions='10')
+
     return _frame, _d.scheme
 
 
