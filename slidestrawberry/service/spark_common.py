@@ -48,6 +48,7 @@ class Handle(object):
         self.url = url
 
 
+# Not Used
 def _get_handle_table_from_hbase(handle, table_name):
     if isinstance(handle, Handle):
         conf = {
@@ -86,13 +87,13 @@ def _get_handle(uri, raw=False):
         return Handle(_spark, _p.hostname)
 
 
-def mongo_handle(spark_master, uri, package_name, raw=False):
-    app = _init_app('MongoInfoApp', spark_master, package_name)
+def mongo_handle(master_url, uri, package_name, raw=False):
+    app = _init_app('MongoInfoApp', master_url, package_name)
     return _get_handle(uri, raw=raw)
 
 
-def hbase_handle(spark_master, uri, raw=False):
-    _spark = SparkContext(master=spark_master,
+def hbase_handle(master_url, uri, raw=False):
+    _spark = SparkContext(master=master_url,
                           appName='HbaseInfoApp')
     if raw:
         return _spark
@@ -101,11 +102,11 @@ def hbase_handle(spark_master, uri, raw=False):
 
 
 # run with Python Scripts
-def start_spark_app(spark_bin, url, script_name, packages=None, drivers=None, tables=None, cache_dir=None,
-                    ext_args=None, spark_master='local'):
+def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, drivers=None, files=None,
+                    cache_dir=None, ext_args=None, master_url='spark://127.0.0.1:7077', hadoop_home=None):
     if not os.path.exists(script_name):
         raise Exception('File {0} not exist!'.format(script_name))
-    _cmd = ' '.join([spark_bin, '--master', spark_master])
+    _cmd = ' '.join([spark_bin, '--master', master_url])
 
     def parse_db_type(db_url, cmd_line):
         _d = urlparse.urlparse(db_url)
@@ -133,24 +134,21 @@ def start_spark_app(spark_bin, url, script_name, packages=None, drivers=None, ta
     if _packages:
         _cmd += ' --packages ' + ','.join(_packages)
     if drivers:
+        # 类似--jars
         _cmd += ' --driver-class-path ' + ','.join([_driver for _driver in drivers if os.path.exists(_driver)])
+    if files:
+        _cmd += ' --files ' + ','.join([_file for _file in files if os.path.exists(_file)])
 
     _cmd += ' ' + script_name + ' run'
     if _url_keys:
         _url_list = []
         for _key in _url_keys:
             _url = url[_key]
-            if len(_url.split('.')) > 4:
-                _url_list.append('.'.join(_url.split('.')[:-1]))
-            else:
-                _url_list.append(_url)
+            _url_list.append(_url)
         _url_list_key = '^'.join(_url_list)
         _cmd += ' '.join([' --base-db', base64.b64encode(_url_list_key)])
     else:
-        if len(url.split('.')) > 4:
-            _cmd += ' '.join([' --base-db', base64.b64encode('.'.join(url.split('.')[:-1]))])
-        else:
-            _cmd += ' '.join([' --base-db', base64.b64encode(url)])
+        _cmd += ' '.join([' --base-db', base64.b64encode(url)])
     if tables:
         if isinstance(tables, list):
             _cmd += ' '.join([' --base-table', ','.join(tables)])
@@ -173,10 +171,19 @@ def start_spark_app(spark_bin, url, script_name, packages=None, drivers=None, ta
                 else:
                     _cmd += ' --' + _k + ' ' + _v
     logger.debug('Command:{0}'.format(_cmd))
+    if hadoop_home:
+        os.putenv('HADOOP_HOME', hadoop_home)
     subprocess.call(_cmd, shell=True)
 
 
-def spark_data_frame(spark_session, db, table):
+def spark_data_frame(spark_session, db, table, cmd=None):
+
+    # def _check_table_is_available(_tb_name):
+    #     if len(_tb_name) >=4 and _tb_name[:2] == '__' and _tb_name[-2:] == '__':
+    #         return False
+    #     else:
+    #         return True
+
     _d = urlparse.urlparse(db)
     if _d.scheme == 'mongodb':
         _frame = spark_session.read.format("com.mongodb.spark.sql.DefaultSource").\
@@ -186,8 +193,35 @@ def spark_data_frame(spark_session, db, table):
         #     option('pipeline', pipeline)
     elif _d.scheme == 'sqlserver':
         _sqlcontext = SQLContext(spark_session.sparkContext)
-        _frame = _sqlcontext.read.format('jdbc').options(
-            url='jdbc:' + db,
-            driver='com.microsoft.sqlserver.jdbc.SQLServerDriver',
-            dbtable=table)
+        # if _check_table_is_available(table):
+        if not cmd:
+            _frame = _sqlcontext.read.format('jdbc').options(
+                url='jdbc:' + db,
+                driver='com.microsoft.sqlserver.jdbc.SQLServerDriver',
+                dbtable=table)
+        else:
+            _frame = _sqlcontext.read.format('jdbc').options(
+                url='jdbc:' + db,
+                driver='com.microsoft.sqlserver.jdbc.SQLServerDriver',
+                dbtable='({0}) as {1}'.format(cmd, table),
+                lowerBound='10001',
+                upperBound='499999',
+                numPartitions='10')
     return _frame, _d.scheme
+
+
+def read_spark_data_frame(spark_session, db, table, cmd=None):
+    __data_frame, __data_frame_type = spark_data_frame(spark_session, db, table, cmd)
+    if cmd:
+        if cmd == '__buildin__':
+            # Rebuild for system
+            if __data_frame_type == 'mongodb':
+                pipeline = "{'$match': {'Version': '" + v + "'}}"
+                return __data_frame.option('pipeline', pipeline).load()
+        else:
+            return __data_frame.load()
+    else:
+        if __data_frame_type == 'mongodb':
+            return __data_frame.option('pipeline', '').load()
+        elif __data_frame_type == 'sqlserver':
+            return __data_frame.load()
