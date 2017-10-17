@@ -223,5 +223,5 @@ def read_spark_data_frame(spark_session, db, table, cmd=None):
     else:
         if __data_frame_type == 'mongodb':
             return __data_frame.option('pipeline', '').load()
-        elif __data_frame_type == 'sqlserver':
+        else:
             return __data_frame.load()
