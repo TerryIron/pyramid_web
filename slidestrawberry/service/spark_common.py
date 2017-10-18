@@ -134,10 +134,14 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
     #     _cmd += ' --packages ' + ','.join(_packages)
     if drivers:
         # 类似--jars
-        _cmd += ' --driver-class-path ' + ','.join([_driver for _driver in drivers if os.path.exists(_driver)])
-        _cmd += ' --jars ' + ','.join([_driver for _driver in drivers if os.path.exists(_driver)])
+        _drivers = [_driver for _driver in drivers if os.path.exists(_driver)]
+        if _drivers:
+            _cmd += ' --driver-class-path ' + ','.join(_drivers)
+            _cmd += ' --jars ' + ','.join(_drivers)
     if files:
-        _cmd += ' --files ' + ','.join([_file for _file in files if os.path.exists(_file)])
+        _files = [_file for _file in files if os.path.exists(_file)]
+        if _files:
+            _cmd += ' --files ' + ','.join(_files)
 
     _cmd += ' ' + script_name + ' run'
     if _url_keys:
@@ -218,14 +222,14 @@ def spark_data_frame(spark_session, db, table, cmd=None):
         _new_url = '://'.join([_d.scheme, ';'.join(_new_url)])
         if not _is_available_command(cmd):
             _frame = _sqlcontext.read.format('jdbc').options(
-                url='jdbc:' + _new_url,
+                url='jdbc:' + db,
                 driver=_driver,
                 user=_username,
                 password=_password,
                 dbtable=table)
         else:
             _frame = _sqlcontext.read.format('jdbc').options(
-                url='jdbc:' + _new_url,
+                url='jdbc:' + db,
                 driver=_driver,
                 user=_username,
                 password=_password,
