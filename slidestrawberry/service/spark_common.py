@@ -130,7 +130,6 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
         _packages = []
     else:
         _packages = [_p for _p in packages if _p] if isinstance(packages, str) else packages
-    _packages.append('com.databricks:spark-csv_2.10:1.5.0')
     # if _packages:
     #     _cmd += ' --packages ' + ','.join(_packages)
     if drivers:
@@ -196,12 +195,7 @@ def spark_data_frame(spark_session, db, table, cmd=None):
     _d = urlparse.urlparse(db)
     _sqlcontext = SQLContext(spark_session.sparkContext)
     if _d.scheme == 'mongodb':
-        # _driver = 'mongodb.jdbc.MongoDriver'
         _driver = 'com.mongodb.spark.sql.DefaultSource'
-        # _frame = _sqlcontext.read.format('jdbc').options(
-        #     url='jdbc:' + db,
-        #     driver=_driver,
-        #     dbtable=table)
         _frame = spark_session.read.format(_driver).\
             option('uri', '.'.join([db, table]))
         # return spark_session.read.format("com.mongodb.spark.sql.DefaultSource").\
