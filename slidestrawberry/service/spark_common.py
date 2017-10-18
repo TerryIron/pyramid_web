@@ -191,7 +191,10 @@ def _is_available_command(_cmd):
 
 
 def spark_data_frame(spark_session, db, table, cmd=None):
-
+    def _options(o):
+        return o.options(lowerBound=1,
+                         upperBound=10000000,
+                         numPartitions=10)
     _d = urlparse.urlparse(db)
     _sqlcontext = SQLContext(spark_session.sparkContext)
     if _d.scheme == 'mongodb':
@@ -203,28 +206,62 @@ def spark_data_frame(spark_session, db, table, cmd=None):
         #     option('pipeline', pipeline)
     elif _d.scheme == 'sqlserver':
         _driver = 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
+        _new_url, _username, _password = [], None, None
+        for i in _d.netloc.split(';'):
+            if i.startswith('user='):
+                _username = i.split('user=')[1]
+                continue
+            if i.startswith('password='):
+                _password = i.split('password=')[1]
+                continue
+            _new_url.append(i)
+        _new_url = '://'.join([_d.scheme, ';'.join(_new_url)])
         if not _is_available_command(cmd):
             _frame = _sqlcontext.read.format('jdbc').options(
-                url='jdbc:' + db,
+                url='jdbc:' + _new_url,
                 driver=_driver,
+                user=_username,
+                password=_password,
                 dbtable=table)
         else:
             _frame = _sqlcontext.read.format('jdbc').options(
-                url='jdbc:' + db,
+                url='jdbc:' + _new_url,
                 driver=_driver,
+                user=_username,
+                password=_password,
                 dbtable='({0}) as {1}'.format(cmd, table))
-    elif _d.scheme == 'mysql':
-        _driver = 'com.mysql.jdbc.Driver'
-        if not _is_available_command(cmd):
-            _frame = _sqlcontext.read.format('jdbc').options(
-                url='jdbc:' + db,
-                driver=_driver,
-                dbtable=table)
-        else:
-            _frame = _sqlcontext.read.format('jdbc').options(
-                url='jdbc:' + db,
-                driver=_driver,
-                dbtable='({0}) as {1}'.format(cmd, table))
+        _frame = _options(_frame)
+    else:
+        _username = _d.username
+        _password = _d.password
+        _hostname = _d.hostname
+        _port = _d.port
+        _parts = (
+            _d.scheme,
+            ':'.join([str(_hostname), str(_port)]) if _hostname and _port else _hostname,
+            _d.path,
+            _d.params,
+            _d.query,
+            _d.fragment
+        )
+        _new_url = urlparse.urlunparse(_parts)
+        if _d.scheme == 'mysql':
+            _driver = 'com.mysql.jdbc.Driver'
+            if not _is_available_command(cmd):
+                _frame = _sqlcontext.read.format('jdbc').options(
+                    url='jdbc:' + _new_url,
+                    driver=_driver,
+                    user=_username,
+                    password=_password,
+                    dbtable=table)
+            else:
+                _frame = _sqlcontext.read.format('jdbc').options(
+                    url='jdbc:' + _new_url,
+                    driver=_driver,
+                    user=_username,
+                    password=_password,
+                    dbtable='({0}) as {1}'.format(cmd, table))
+        _frame = _options(_frame)
 
     return _frame, _d.scheme
 
