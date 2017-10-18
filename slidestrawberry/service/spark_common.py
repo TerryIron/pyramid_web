@@ -106,7 +106,7 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
                     cache_dir=None, ext_args=None, master_url='spark://127.0.0.1:7077', hadoop_home=None):
     if not os.path.exists(script_name):
         raise Exception('File {0} not exist!'.format(script_name))
-    _cmd = ' '.join([spark_bin, '--master', master_url])
+    _cmd = ' '.join([spark_bin, '--master ', master_url])
 
     def parse_db_type(db_url, cmd_line):
         _d = urlparse.urlparse(db_url)
@@ -131,11 +131,12 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
     else:
         _packages = [_p for _p in packages if _p] if isinstance(packages, str) else packages
     _packages.append('com.databricks:spark-csv_2.10:1.5.0')
-    if _packages:
-        _cmd += ' --packages ' + ','.join(_packages)
+    # if _packages:
+    #     _cmd += ' --packages ' + ','.join(_packages)
     if drivers:
         # 类似--jars
         _cmd += ' --driver-class-path ' + ','.join([_driver for _driver in drivers if os.path.exists(_driver)])
+        _cmd += ' --jars ' + ','.join([_driver for _driver in drivers if os.path.exists(_driver)])
     if files:
         _cmd += ' --files ' + ','.join([_file for _file in files if os.path.exists(_file)])
 
@@ -176,19 +177,39 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
     subprocess.call(_cmd, shell=True)
 
 
+def _is_buildin_command(_cmd):
+    if _cmd == '__buildin__':
+        return True
+    else:
+        return False
+
+
+def _is_available_command():
+    if _cmd and _cmd != '__buildin__':
+        return True
+    else:
+        return False
+
+
 def spark_data_frame(spark_session, db, table, cmd=None):
 
     _d = urlparse.urlparse(db)
     _sqlcontext = SQLContext(spark_session.sparkContext)
     if _d.scheme == 'mongodb':
-        _frame = spark_session.read.format("com.mongodb.spark.sql.DefaultSource").\
+        # _driver = 'mongodb.jdbc.MongoDriver'
+        _driver = 'com.mongodb.spark.sql.DefaultSource'
+        # _frame = _sqlcontext.read.format('jdbc').options(
+        #     url='jdbc:' + db,
+        #     driver=_driver,
+        #     dbtable=table)
+        _frame = spark_session.read.format(_driver).\
             option('uri', '.'.join([db, table]))
         # return spark_session.read.format("com.mongodb.spark.sql.DefaultSource").\
         #     option('uri', '.'.join([db, table])). \
         #     option('pipeline', pipeline)
     elif _d.scheme == 'sqlserver':
         _driver = 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-        if not cmd:
+        if not _is_available_command(cmd):
             _frame = _sqlcontext.read.format('jdbc').options(
                 url='jdbc:' + db,
                 driver=_driver,
@@ -197,13 +218,10 @@ def spark_data_frame(spark_session, db, table, cmd=None):
             _frame = _sqlcontext.read.format('jdbc').options(
                 url='jdbc:' + db,
                 driver=_driver,
-                dbtable='({0}) as {1}'.format(cmd, table),
-                lowerBound='10001',
-                upperBound='499999',
-                numPartitions='10')
+                dbtable='({0}) as {1}'.format(cmd, table))
     elif _d.scheme == 'mysql':
         _driver = 'com.mysql.jdbc.Driver'
-        if not cmd:
+        if not _is_available_command(cmd):
             _frame = _sqlcontext.read.format('jdbc').options(
                 url='jdbc:' + db,
                 driver=_driver,
@@ -212,26 +230,18 @@ def spark_data_frame(spark_session, db, table, cmd=None):
             _frame = _sqlcontext.read.format('jdbc').options(
                 url='jdbc:' + db,
                 driver=_driver,
-                dbtable='({0}) as {1}'.format(cmd, table),
-                lowerBound='10001',
-                upperBound='499999',
-                numPartitions='10')
+                dbtable='({0}) as {1}'.format(cmd, table))
 
     return _frame, _d.scheme
 
 
-def read_spark_data_frame(spark_session, db, table, cmd=None):
+def read_spark_data_frame(spark_session, db, table, cmd=None, version='v1'):
     __data_frame, __data_frame_type = spark_data_frame(spark_session, db, table, cmd)
-    if cmd:
-        if cmd == '__buildin__':
-            # Rebuild for system
-            if __data_frame_type == 'mongodb':
-                pipeline = "{'$match': {'Version': '" + v + "'}}"
-                return __data_frame.option('pipeline', pipeline).load()
+    if _is_buildin_command(cmd):
+        if __data_frame_type == 'mongodb':
+            pipeline = "{'$match': {'Version': '" + version + "'}}"
+            return __data_frame.option('pipeline', pipeline).load()
         else:
             return __data_frame.load()
     else:
-        if __data_frame_type == 'mongodb':
-            return __data_frame.option('pipeline', '').load()
-        else:
-            return __data_frame.load()
+        return __data_frame.load()
