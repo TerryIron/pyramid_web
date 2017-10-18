@@ -184,7 +184,7 @@ def _is_buildin_command(_cmd):
         return False
 
 
-def _is_available_command():
+def _is_available_command(_cmd):
     if _cmd and _cmd != '__buildin__':
         return True
     else:
