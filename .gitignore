@@ -11,3 +11,4 @@ env
 .ipynb*
 dist
 metastore_db
+celerybeat-schedule

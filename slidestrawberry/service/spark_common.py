@@ -220,16 +220,17 @@ def spark_data_frame(spark_session, db, table, cmd=None):
                 continue
             _new_url.append(i)
         _new_url = '://'.join([_d.scheme, ';'.join(_new_url)])
+
         if not _is_available_command(cmd):
             _frame = _sqlcontext.read.format('jdbc').options(
-                url='jdbc:' + db,
+                url='jdbc:' + _new_url,
                 driver=_driver,
                 user=_username,
                 password=_password,
                 dbtable=table)
         else:
             _frame = _sqlcontext.read.format('jdbc').options(
-                url='jdbc:' + db,
+                url='jdbc:' + _new_url,
                 driver=_driver,
                 user=_username,
                 password=_password,
