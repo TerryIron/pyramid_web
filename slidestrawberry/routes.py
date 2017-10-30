@@ -26,6 +26,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def get_settings(s, config_key='data.source'):
+    _d = json.loads(s.get(config_key, '{}'))
+    return _d
+
+
 def with_version(version_id, name):
     if '/' in name:
         return '/' + str(version_id) + str(name)
@@ -39,7 +44,7 @@ def filter_response(func):
         try:
             root_factory, request = args
             request.response.headers['Access-Control-Allow-Origin'] = '*'
-            return func(request)
+            return func(request, **kwargs)
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
@@ -49,7 +54,94 @@ def filter_response(func):
     return _filter_response
 
 
+def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_parser=None,
+                         default_value=None, err_result=None,
+                         expect_values=None, expect_request_arg_name=None,
+                         expect_arg_name=None, expect_out_name=None,
+                         unexpected_values=None, unexpected_request_arg_name=None,
+                         unexpected_arg_name=None, unexpected_out_name=None):
+    err_result = err_result if err_result else []
+
+    def _request_checker(func):
+        @functools.wraps(func)
+        def __request_checker(request, *args, **kwargs):
+            logger.info('request check on {0}, params:{1}'.format(arg_name,
+                                                                  request.params))
+            if default_value:
+                _arg_value = request.params.get(arg_name, default_value)
+            else:
+                _arg_value = request.params.get(arg_name)
+            if need_exist and not _arg_value:
+                _need_back = True
+                if or_exist_args:
+                    for _or_exist in or_exist_args:
+                        if request.params.get(_or_exist):
+                            _need_back = False
+                            break
+                if _need_back:
+                    logger.error('check arg_name:{0} is not exist'.format(arg_name))
+                    return Response(json.dumps(err_result), 500,
+                                    headers={'Content-Type': 'application/json',
+                                             'Access-Control-Allow-Origin': '*'})
+            if callable(expect_values):
+                if expect_request_arg_name:
+                    _expect_value = expect_values(getattr(request, expect_request_arg_name))
+                else:
+                    _expect_value = expect_values()
+            else:
+                _expect_value = expect_values
+            if expect_arg_name:
+                _expect_value = request.params.get(expect_arg_name)
+            if expect_out_name:
+                setattr(request.props, expect_out_name, _expect_value)
+
+            if callable(unexpected_values):
+                if unexpected_request_arg_name:
+                    _unexpected_value = unexpected_values(getattr(request, unexpected_request_arg_name))
+                else:
+                    _unexpected_value = unexpected_values()
+            else:
+                _unexpected_value = unexpected_values
+            if unexpected_arg_name:
+                _unexpected_value = request.params.get(unexpected_arg_name)
+            if unexpected_out_name:
+                setattr(request.props, unexpected_out_name, _unexpected_value)
+
+            if arg_parser:
+                _arg_value = arg_parser(_arg_value)
+
+            def _err_back(_key=None):
+                if not _key:
+                    logger.error('check arg_name:{0} failed, expect:{1}, unexpected:{2}'
+                                 .format(arg_name, _expect_value, _unexpected_value))
+                else:
+                    logger.error('check arg_name:{0} failed, error key:{1} expect:{2}, unexpected:{3}'
+                                 .format(arg_name, _key, _expect_value, _unexpected_value))
+                return Response(json.dumps(err_result), 500,
+                                headers={'Content-Type': 'application/json',
+                                         'Access-Control-Allow-Origin': '*'})
+
+            if isinstance(_arg_value, str):
+                if _expect_value and _arg_value not in _expect_value:
+                    return _err_back()
+                if _unexpected_value and _arg_value in _unexpected_value:
+                    return _err_back()
+            else:
+                for _arg in _arg_value:
+                    if _expect_value and _arg not in _expect_value:
+                        return _err_back(_arg)
+                    if _unexpected_value and _arg in _unexpected_value:
+                        return _err_back(_arg)
+            request.params.set(arg_name, _arg_value)
+            logger.info('request check off {0}, params:{1}'.format(arg_name,
+                                                                   request.params))
+            return func(request, *args, **kwargs)
+        return __request_checker
+    return _request_checker
+
+
 def includeme(config):
+    config.add_request_method(lambda x: object(), 'props', reify=True)
     config.add_static_view(name='static', path='static', cache_max_age=3600)
     config.add_route('home', '/')
     # -- API版本 --
