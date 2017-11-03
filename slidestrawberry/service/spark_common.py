@@ -27,7 +27,9 @@ import base64
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession, SQLContext
 
+
 __author__ = 'terry'
+
 
 logger = logging.getLogger(__name__)
 
