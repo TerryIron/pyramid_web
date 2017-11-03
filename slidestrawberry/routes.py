@@ -42,7 +42,10 @@ def filter_response(func):
     @functools.wraps(func)
     def _filter_response(*args, **kwargs):
         try:
-            root_factory, request = args
+            if len(args) == 2:
+                root_factory, request = args
+            else:
+                request = args[0]
             request.response.headers['Access-Control-Allow-Origin'] = '*'
             return func(request, **kwargs)
         except Exception as e:
@@ -93,7 +96,7 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
             if expect_arg_name:
                 _expect_value = request.params.get(expect_arg_name)
             if expect_out_name:
-                setattr(request.props, expect_out_name, _expect_value)
+                request.props[expect_out_name] = _expect_value
 
             if callable(unexpected_values):
                 if unexpected_request_arg_name:
@@ -105,7 +108,7 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
             if unexpected_arg_name:
                 _unexpected_value = request.params.get(unexpected_arg_name)
             if unexpected_out_name:
-                setattr(request.props, unexpected_out_name, _unexpected_value)
+                request.props[unexpected_out_name] = _unexpected_value
 
             if arg_parser:
                 _arg_value = arg_parser(_arg_value)
@@ -121,7 +124,7 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
                                 headers={'Content-Type': 'application/json',
                                          'Access-Control-Allow-Origin': '*'})
 
-            if isinstance(_arg_value, str):
+            if isinstance(_arg_value, str) or isinstance(_arg_value, unicode):
                 if _expect_value and _arg_value not in _expect_value:
                     return _err_back()
                 if _unexpected_value and _arg_value in _unexpected_value:
@@ -132,7 +135,9 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
                         return _err_back(_arg)
                     if _unexpected_value and _arg in _unexpected_value:
                         return _err_back(_arg)
-            request.params.set(arg_name, _arg_value)
+            if not hasattr(request, 'dict'):
+                setattr(request, 'dict', {})
+            request.dict[arg_name] = _arg_value
             logger.info('request check off {0}, params:{1}'.format(arg_name,
                                                                    request.params))
             return func(request, *args, **kwargs)

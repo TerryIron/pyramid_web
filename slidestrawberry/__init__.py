@@ -26,7 +26,11 @@ from pyramid_celery import celery_app as app
 __version__ = (0, 1, 0)
 
 
+GLOBAL_CONFIG = {}
+
+
 def main(global_config, **settings):
+    GLOBAL_CONFIG.update(global_config)
     """ This functionreturns a Pyramid WSGI application.
     """
     file_name = global_config.get('__file__')
