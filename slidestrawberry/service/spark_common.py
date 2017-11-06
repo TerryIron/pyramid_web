@@ -105,7 +105,8 @@ def hbase_handle(master_url, uri, raw=False):
 
 # run with Python Scripts
 def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, drivers=None, files=None,
-                    cache_dir=None, ext_args=None, master_url='spark://127.0.0.1:7077', hadoop_home=None):
+                    cache_dir=None, ext_args=None, master_url='spark://127.0.0.1:7077', hadoop_home=None,
+                    enable_packages=False):
     if not os.path.exists(script_name):
         raise Exception('File {0} not exist!'.format(script_name))
     _cmd = ' '.join([spark_bin, '--master ', master_url])
@@ -128,12 +129,13 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
         _url_keys.sort()
         _cmd = parse_db_type(url[_url_keys[0]], _cmd)
 
-    if not packages:
-        _packages = []
-    else:
-        _packages = [_p for _p in packages if _p] if isinstance(packages, str) else packages
-    # if _packages:
-    #     _cmd += ' --packages ' + ','.join(_packages)
+    if enable_packages:
+        if not packages:
+            _packages = []
+        else:
+            _packages = [_p for _p in packages if _p] if isinstance(packages, str) else packages
+        if _packages:
+            _cmd += ' --packages ' + ','.join(_packages)
     if drivers:
         # 类似--jars
         _drivers = [_driver for _driver in drivers if os.path.exists(_driver)]
