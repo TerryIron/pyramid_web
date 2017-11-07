@@ -26,9 +26,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_settings(s, config_key='data.source'):
-    _d = json.loads(s.get(config_key, '{}'))
-    return _d
+def get_settings(s, config_key=None, to_json=False):
+    d = s
+    if config_key:
+        d = d.get(config_key, '')
+    if to_json:
+        d = json.loads(d if d else '{}')
+    return d
 
 
 def with_version(version_id, name):
