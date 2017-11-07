@@ -124,17 +124,18 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
                                 headers={'Content-Type': 'application/json',
                                          'Access-Control-Allow-Origin': '*'})
 
-            if isinstance(_arg_value, str) or isinstance(_arg_value, unicode):
-                if _expect_value and _arg_value not in _expect_value:
-                    return _err_back()
-                if _unexpected_value and _arg_value in _unexpected_value:
-                    return _err_back()
-            else:
-                for _arg in _arg_value:
-                    if _expect_value and _arg not in _expect_value:
-                        return _err_back(_arg)
-                    if _unexpected_value and _arg in _unexpected_value:
-                        return _err_back(_arg)
+            if _arg_value:
+                if isinstance(_arg_value, str) or isinstance(_arg_value, unicode):
+                    if _expect_value and _arg_value not in _expect_value:
+                        return _err_back()
+                    if _unexpected_value and _arg_value in _unexpected_value:
+                        return _err_back()
+                else:
+                    for _arg in _arg_value:
+                        if _expect_value and _arg not in _expect_value:
+                            return _err_back(_arg)
+                        if _unexpected_value and _arg in _unexpected_value:
+                            return _err_back(_arg)
             if not hasattr(request, 'dict'):
                 setattr(request, 'dict', {})
             request.dict[arg_name] = _arg_value
