@@ -114,9 +114,6 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
             if unexpected_out_name:
                 request.props[unexpected_out_name] = _unexpected_value
 
-            if arg_parser:
-                _arg_value = arg_parser(_arg_value)
-
             def _err_back(_key=None):
                 if not _key:
                     logger.error('check arg_name:{0} failed, expect:{1}, unexpected:{2}'
@@ -129,6 +126,8 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
                                          'Access-Control-Allow-Origin': '*'})
 
             if _arg_value:
+                if arg_parser:
+                    _arg_value = arg_parser(_arg_value)
                 if isinstance(_arg_value, str) or isinstance(_arg_value, unicode):
                     if _expect_value and _arg_value not in _expect_value:
                         return _err_back()
