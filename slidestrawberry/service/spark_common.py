@@ -174,7 +174,7 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
         for _k, _v in ext_args.items():
             _k = '-'.join(_k.split('_'))
             if _k and _v:
-                if isinstance(_v, dict):
+                if isinstance(_v, dict) or isinstance(_v, list):
                     _cmd += ' --' + _k + ' ' + base64.b64encode(json.dumps(_v))
                 else:
                     _cmd += ' --' + _k + ' ' + _v
