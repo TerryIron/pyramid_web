@@ -26,15 +26,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_settings(s, config_key=None, to_json=False):
-    d = s
-    if config_key:
-        d = d.get(config_key, '')
-    if to_json:
-        d = json.loads(d if d else '{}')
-    return d
-
-
 def with_version(version_id, name):
     if '/' in name:
         return '/' + str(version_id) + str(name)
@@ -147,6 +138,15 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
             return func(request, *args, **kwargs)
         return __request_checker
     return _request_checker
+
+
+def get_settings(s, config_key=None, to_json=False):
+    d = s
+    if config_key:
+        d = d.get(config_key, '')
+    if to_json:
+        d = json.loads(d if d else '{}')
+    return d
 
 
 def includeme(config):
