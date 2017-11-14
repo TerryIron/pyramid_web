@@ -42,7 +42,9 @@ def filter_response(func):
             else:
                 request = args[0]
             request.response.headers['Access-Control-Allow-Origin'] = '*'
-            return func(request, **kwargs)
+            ret =func(request, **kwargs)
+            logger.info('Response:{0}'.format(ret))
+            return ret
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
