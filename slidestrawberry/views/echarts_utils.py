@@ -25,7 +25,7 @@ _ECHARTS_KEYS = {
     'line':  ['legend', 'series', 'category'],
     'bar':  ['legend', 'series', 'category'],
     'pie':  ['legend', 'series'],
-    'radar':  ['legend', 'series', 'category', 'indicator'],
+    'radius':  ['legend', 'series', 'category', 'indicate'],
 }
 
 
@@ -55,11 +55,18 @@ def build_echarts_struct(chart_type=None):
 
 
 def build_echarts_series(legend_name, chart_type, data, **kwargs):
-    _data = {
-        'name': legend_name,
-        'type': chart_type,
-        'data': data
-    }
+    if chart_type == 'radius':
+        _data = {
+            'name': legend_name,
+            'type': chart_type,
+            'value': data
+        }
+    else:
+        _data = {
+            'name': legend_name,
+            'type': chart_type,
+            'data': data
+        }
     for _key, _value in kwargs.items():
         _data[_key] = _value
     return _data

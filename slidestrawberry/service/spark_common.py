@@ -106,10 +106,15 @@ def hbase_handle(master_url, uri, raw=False):
 # run with Python Scripts
 def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, drivers=None, files=None,
                     cache_dir=None, ext_args=None, master_url='spark://127.0.0.1:7077', hadoop_home=None,
-                    enable_packages=False):
+                    enable_packages=False, cpu=None, mem=None):
     if not os.path.exists(script_name):
         raise Exception('File {0} not exist!'.format(script_name))
     _cmd = ' '.join([spark_bin, '--master ', master_url])
+
+    if cpu:
+        _cmd += ' --total-executor-cores {0} '.format(cpu)
+    if mem:
+        _cmd += ' --executor-memory {0}m '.format(mem)
 
     def parse_db_type(db_url, cmd_line):
         _d = urlparse.urlparse(db_url)
