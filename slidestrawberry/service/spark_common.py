@@ -158,7 +158,7 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
         for _key in _url_keys:
             _url = url[_key]
             _url_list.append(_url)
-        _url_list_key = ','.join(_url_list)
+        _url_list_key = '^^'.join(_url_list)
         _cmd += ' '.join([' --base-db', base64.b64encode(_url_list_key)])
     else:
         _cmd += ' '.join([' --base-db', base64.b64encode(url)])
@@ -192,8 +192,10 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
 def parse_params(info):
     if ',' in info and '^' in info:
         return [i.split(',') for i in info.split('^') if ',' in i]
+    elif '^^' in info:
+        return info.split('^^')
     elif ',' in info:
-        return info.split(',')
+        return [info.split(',')]
     elif '^' in info:
         return [[i] for i in info.split('^')]
     else:
