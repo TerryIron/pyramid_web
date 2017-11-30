@@ -158,7 +158,7 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
         for _key in _url_keys:
             _url = url[_key]
             _url_list.append(_url)
-        _url_list_key = '^'.join(_url_list)
+        _url_list_key = ','.join(_url_list)
         _cmd += ' '.join([' --base-db', base64.b64encode(_url_list_key)])
     else:
         _cmd += ' '.join([' --base-db', base64.b64encode(url)])
@@ -189,6 +189,17 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
     subprocess.call(_cmd, shell=True)
 
 
+def parse_params(info):
+    if ',' in info and '^' in info:
+        return [i.split(',') for i in info.split('^') if ',' in i]
+    elif ',' in info:
+        return info.split(',')
+    elif '^' in info:
+        return [[i] for i in info.split('^')]
+    else:
+        return [info]
+
+
 def _is_buildin_command(_cmd):
     if _cmd == '__buildin__':
         return True
@@ -208,6 +219,7 @@ def spark_data_frame(spark_session, db, table, cmd=None):
         return o.options(lowerBound=1,
                          upperBound=10000000,
                          numPartitions=10)
+    _frame = None
     _d = urlparse.urlparse(db)
     _sqlcontext = SQLContext(spark_session.sparkContext)
     if _d.scheme == 'mongodb':
@@ -275,7 +287,7 @@ def spark_data_frame(spark_session, db, table, cmd=None):
                     user=_username,
                     password=_password,
                     dbtable='({0}) as {1}'.format(cmd, table))
-        _frame = _options(_frame)
+            _frame = _options(_frame)
 
     return _frame, _d.scheme
 
