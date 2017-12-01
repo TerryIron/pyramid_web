@@ -33,24 +33,27 @@ def with_version(version_id, name):
         return str(name) + '_' + str(version_id)
 
 
-def filter_response(func):
-    @functools.wraps(func)
-    def _filter_response(*args, **kwargs):
-        try:
-            if len(args) == 2:
-                root_factory, request = args
-            else:
-                request = args[0]
-            request.response.headers['Access-Control-Allow-Origin'] = '*'
-            ret =func(request, **kwargs)
-            logger.info('Response:{0}'.format(ret))
-            return ret
-        except Exception as e:
-            import traceback
-            logger.error(traceback.format_exc())
-            return Response(json.dumps([]), 500,
-                            headers={'Content-Type': 'application/json',
-                                     'Access-Control-Allow-Origin': '*'})
+def filter_response(allow_origin=False):
+    def _filter_response(func):
+        @functools.wraps(func)
+        def __filter_response(*args, **kwargs):
+            try:
+                if len(args) == 2:
+                    root_factory, request = args
+                else:
+                    request = args[0]
+                if allow_origin:
+                    request.response.headers['Access-Control-Allow-Origin'] = '*'
+                ret =func(request, **kwargs)
+                logger.info('Response:{0}'.format(ret))
+                return ret
+            except Exception as e:
+                import traceback
+                logger.error(traceback.format_exc())
+                return Response(json.dumps([]), 500,
+                                headers={'Content-Type': 'application/json',
+                                         'Access-Control-Allow-Origin': '*'})
+        return __filter_response
     return _filter_response
 
 
