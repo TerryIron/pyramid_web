@@ -28,5 +28,6 @@ mongoengine
 numpy
 setuptools==37.0.0
 pymssql
-pyspark==2.2.0
+pyspark>=2.2.0
 psycopg2
+cffi
