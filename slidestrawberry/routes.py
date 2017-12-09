@@ -44,10 +44,10 @@ def filter_response(allow_origin=False):
                     request = args[0]
                 if allow_origin:
                     request.response.headers['Access-Control-Allow-Origin'] = '*'
-                ret =func(request, **kwargs)
+                ret = func(request, **kwargs)
                 logger.info('Response:{0}'.format(ret))
                 return ret
-            except Exception as e:
+            except:
                 import traceback
                 logger.error(traceback.format_exc())
                 return Response(json.dumps([]), 500,
