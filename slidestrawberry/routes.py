@@ -63,7 +63,27 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
                          expect_arg_name=None, expect_out_name=None,
                          unexpected_values=None, unexpected_request_arg_name=None,
                          unexpected_arg_name=None, unexpected_out_name=None,
-                         out_name='dict'):
+                         out_param_name='dict', out_values_param_name='props'):
+    """
+    
+    :param arg_name: 请求参数名称
+    :param need_exist: 是否必须
+    :param or_exist_args: 可用于替代的请求参数名称列表
+    :param arg_parser: 请求参数处理函数, 返回可用于以下判断函数
+    :param default_value: 默认值或默认函数
+    :param err_result: 参数错误返回结果
+    :param expect_values: 参数可接受范围的判断函数
+    :param expect_request_arg_name: 请求对象参数可用于判断函数（可接受范围）
+    :param expect_arg_name: 参数可用于判断函数（可接受范围）
+    :param expect_out_name: 可接受判断函数输出变量名
+    :param unexpected_values: 参数不可接受范围或函数
+    :param unexpected_request_arg_name: 请求对象参数可用于判断函数（不可接受范围）
+    :param unexpected_arg_name: 参数可用于判断函数（不可接受范围）
+    :param unexpected_out_name: 不可接受函数输出变量名
+    :param out_param_name: 请求参数保存变量对象名称
+    :param out_values_param_name: 
+    :return: 
+    """
     err_result = err_result if err_result else []
 
     def _request_checker(func):
@@ -71,6 +91,8 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
         def __request_checker(request, *args, **kwargs):
             logger.info('request check on {0}, params:{1}'.format(arg_name,
                                                                   request.params))
+            if not hasattr(request, out_values_param_name):
+                setattr(request, out_values_param_name, {})
             if default_value:
                 _arg_value = request.params.get(arg_name,
                                                 default_value() if callable(default_value) else default_value)
@@ -98,7 +120,8 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
             if expect_arg_name:
                 _expect_value = request.params.get(expect_arg_name)
             if expect_out_name:
-                request.props[expect_out_name] = _expect_value
+                _values_dict = getattr(request, out_values_param_name)
+                _values_dict[expect_out_name] = _expect_value
 
             if callable(unexpected_values):
                 if unexpected_request_arg_name:
@@ -110,7 +133,8 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
             if unexpected_arg_name:
                 _unexpected_value = request.params.get(unexpected_arg_name)
             if unexpected_out_name:
-                request.props[unexpected_out_name] = _unexpected_value
+                _values_dict = getattr(request, out_values_param_name)
+                _values_dict[unexpected_out_name] = _unexpected_value
 
             def _err_back(_key=None):
                 if not _key:
@@ -137,9 +161,9 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
                             return _err_back(_arg)
                         if _unexpected_value and _arg in _unexpected_value:
                             return _err_back(_arg)
-            if not hasattr(request, out_name):
-                setattr(request, out_name, {})
-            _request_dict = getattr(request, out_name)
+            if not hasattr(request, out_param_name):
+                setattr(request, out_param_name, {})
+            _request_dict = getattr(request, out_param_name)
             _request_dict[arg_name] = _arg_value
             logger.info('request check off {0}, params:{1}'.format(arg_name,
                                                                    request.params))
