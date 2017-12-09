@@ -62,7 +62,8 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
                          expect_values=None, expect_request_arg_name=None,
                          expect_arg_name=None, expect_out_name=None,
                          unexpected_values=None, unexpected_request_arg_name=None,
-                         unexpected_arg_name=None, unexpected_out_name=None):
+                         unexpected_arg_name=None, unexpected_out_name=None,
+                         out_name='dict'):
     err_result = err_result if err_result else []
 
     def _request_checker(func):
@@ -71,7 +72,8 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
             logger.info('request check on {0}, params:{1}'.format(arg_name,
                                                                   request.params))
             if default_value:
-                _arg_value = request.params.get(arg_name, default_value)
+                _arg_value = request.params.get(arg_name,
+                                                default_value() if callable(default_value) else default_value)
             else:
                 _arg_value = request.params.get(arg_name)
             if need_exist and not _arg_value:
@@ -135,9 +137,10 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
                             return _err_back(_arg)
                         if _unexpected_value and _arg in _unexpected_value:
                             return _err_back(_arg)
-            if not hasattr(request, 'dict'):
-                setattr(request, 'dict', {})
-            request.dict[arg_name] = _arg_value
+            if not hasattr(request, out_name):
+                setattr(request, out_name, {})
+            _request_dict = getattr(request, out_name)
+            _request_dict[arg_name] = _arg_value
             logger.info('request check off {0}, params:{1}'.format(arg_name,
                                                                    request.params))
             return func(request, *args, **kwargs)
