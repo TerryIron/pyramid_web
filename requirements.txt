@@ -1,7 +1,7 @@
 cython
 bson
 thriftpy
-pyramid==1.8.5
+pyramid==1.9.1
 geoalchemy2
 SQLAlchemy==1.1.9
 mysqlclient==1.3.9

@@ -57,8 +57,8 @@ def get_mod_tables(mod):
 
 
 def _parse_create_tables(engine, config):
+    mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
     if engine.name == 'hbase':
-        mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
         mod_instances = get_mod_tables(mod)
         _tables = engine.engine.tables()
         for m in mod_instances:
