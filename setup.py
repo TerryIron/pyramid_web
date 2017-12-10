@@ -49,7 +49,7 @@ tests_require = [
     ]
 
 setup(name='slidestrawberry',
-      version='.'.join([str(v) for v in WizDatacenter.__version__]),
+      version='.'.join([str(v) for v in slidestrawberry.__version__]),
       description='slidestrawberry',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
