@@ -39,6 +39,14 @@ __all__ = ['Engine', 'EngineFactory', 'Table', 'get_engine', 'get_sqlalchemy_eng
 
 
 def _get_pointed_value(settings, prefix):
+    """
+    获取配置特性
+    
+    :param settings: 配置表
+    :param prefix: 特征字段 
+    :return: 
+    """
+
     for k, v in settings.items():
         if prefix in k:
             return v.strip()
@@ -46,6 +54,13 @@ def _get_pointed_value(settings, prefix):
 
 
 def get_mod_tables(mod):
+    """
+    获取模块内表对象
+    
+    :param mod: 模块对象 
+    :return: 
+    """
+
     _n = []
     for d in dir(mod):
         n = getattr(mod, d)
@@ -56,8 +71,15 @@ def get_mod_tables(mod):
     return _n
 
 
-def _parse_create_tables(engine, config):
-    mod = __import__(config, globals(), locals(), [config.split('.')[-1]])
+def _parse_create_tables(engine, mod):
+    """
+    创建表
+    
+    :param engine: 数据引擎代理对象
+    :param mod: 模块路径
+    :return: 
+    """
+    mod = __import__(mod, globals(), locals(), [mod.split('.')[-1]])
     if engine.name == 'hbase':
         mod_instances = get_mod_tables(mod)
         _tables = engine.engine.tables()
@@ -73,28 +95,58 @@ def _parse_create_tables(engine, config):
 
 
 class Engine(object):
+    """
+    数据引擎代理
+    """
+
     def __init__(self, engine, name=''):
+        """
+        数据引擎初始化
+        :param engine: 数据引擎工厂函数入口
+        :param name: 数据引擎名称
+        """
+
         self._engine = engine
         self.name = name
 
     @property
     def engine_factory(self):
+        """
+        数据引擎工厂函数
+        :return: 
+        """
+
         return self._engine
 
     @property
     def engine(self):
+        """
+        数据引擎实例
+        :return: 
+        """
+
         _instance = self._engine if not callable(self._engine) else self._engine()
         if hasattr(_instance, 'open') and callable(getattr(_instance, 'open')):
             _instance.open()
         return _instance
 
+
 class EngineFactory(object):
+    """
+    数据引擎工厂类
+    """
+
     def __init__(self, factory, name=''):
         self.factory = factory
         self.name = name
 
 
 class Table(object):
+    """
+    数据表对象
+    :param inst: 数据模型实例
+    """
+
     def __init__(self, inst):
         self.name = getattr(inst, '__tablename__')
         self.inst = inst
@@ -102,6 +154,13 @@ class Table(object):
 
 
 def get_engine(settings, prefix='sql.'):
+    """
+    生成数据引擎代理实例
+    :param settings: 配置表
+    :param prefix: 特征
+    :return: 
+    """
+
     value = _get_pointed_value(settings, prefix)
     if value.startswith('hbase:'):
         return get_hbase_engine(value)
@@ -110,16 +169,35 @@ def get_engine(settings, prefix='sql.'):
 
 
 def get_hbase_engine(url):
+    """
+    生成Hbase数据引擎代理实例
+    :param url: 数据库地址
+    :return: 
+    """
+
     import urlparse
     _p = urlparse.urlparse(url)
     return Engine(lambda: happybase.Connection(host=_p.hostname, port=int(_p.port), autoconnect=False), 'hbase')
 
 
 def get_sqlalchemy_engine(url):
+    """
+    生成Sqlalchemy数据引擎代理实例
+    :param url: 数据库地址
+    :return: 
+    """
+
     return Engine(sessionmaker(bind=create_engine(url)), 'sqlalchemy')
 
 
 def create_tables(engine, settings, prefix='model.'):
+    """
+    创建数据引擎中模型, 最好先导入模型模块
+    :param settings: 配置表
+    :param prefix: 特征
+    :return: 
+    """
+
     value = _get_pointed_value(settings, prefix)
     if not value:
         return
@@ -127,6 +205,13 @@ def create_tables(engine, settings, prefix='model.'):
 
 
 def get_session_factory(engine):
+    """
+    获取数据引擎工厂
+    
+    :param engine: 数据引擎代理
+    :return: 
+    """
+
     if engine.name == 'hbase':
         return EngineFactory(engine.engine_factory, engine.name)
     else:

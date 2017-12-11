@@ -26,10 +26,20 @@ from pyramid import testing
 
 
 def dummy_request(dbsession):
+    """
+    生成虚拟请求
+    :param dbsession: 会话实例
+    :return: 
+    """
+
     return testing.DummyRequest(dbsession=dbsession)
 
 
 class BaseTest(unittest.TestCase):
+    """
+    测试用例基本类
+    """
+
     def setUp(self):
         self.config = testing.setUp(settings={
             'sqlalchemy.url': 'sqlite:///:memory:'
@@ -60,27 +70,14 @@ class BaseTest(unittest.TestCase):
         Base.metadata.drop_all(self.engine)
 
 
-class TestMyViewSuccessCondition(BaseTest):
+class TestSuccessCondition(BaseTest):
+    """
+    测试基本调用
+    """
 
     def setUp(self):
-        super(TestMyViewSuccessCondition, self).setUp()
+        super(TestSuccessCondition, self).setUp()
         self.init_database()
 
-        from .models import MyModel
-
-        model = MyModel(name='one', value=55)
-        self.session.add(model)
-
-    def test_passing_view(self):
-        from .views.default import my_view
-        info = my_view(dummy_request(self.session))
-        self.assertEqual(info['one'].name, 'one')
-        self.assertEqual(info['project'], 'slidestrawberry')
-
-
-class TestMyViewFailureCondition(BaseTest):
-
-    def test_failing_view(self):
-        from .views.default import my_view
-        info = my_view(dummy_request(self.session))
-        self.assertEqual(info.status_int, 500)
+    def test_view(self):
+        pass

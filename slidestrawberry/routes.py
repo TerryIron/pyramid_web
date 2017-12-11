@@ -27,6 +27,14 @@ logger = logging.getLogger(__name__)
 
 
 def with_version(version_id, name):
+    """
+    用于定义接口版本
+    
+    :param version_id: 版本号 
+    :param name: 接口名称
+    :return:
+    """
+
     if '/' in name:
         return '/' + str(version_id) + str(name)
     else:
@@ -34,6 +42,13 @@ def with_version(version_id, name):
 
 
 def filter_response(allow_origin=False):
+    """
+    用于处理返回结果
+    
+    :param allow_origin: 是否支持跨域
+    :return: 
+    """
+
     def _filter_response(func):
         @functools.wraps(func)
         def __filter_response(*args, **kwargs):
@@ -65,6 +80,7 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
                          unexpected_arg_name=None, unexpected_out_name=None,
                          out_param_name='dict', out_values_param_name='props'):
     """
+    用于检查和处理请求参数
     
     :param arg_name: 请求参数名称
     :param need_exist: 是否必须
@@ -84,6 +100,7 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
     :param out_values_param_name: 
     :return: 
     """
+
     err_result = err_result if err_result else []
 
     def _request_checker(func):
@@ -173,6 +190,14 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
 
 
 def get_settings(s, config_key=None, to_json=False):
+    """
+    获取配置参数
+    :param s: 配置表
+    :param config_key: 配置字段 
+    :param to_json: 是否转为Json
+    :return: 
+    """
+
     d = s
     if config_key:
         d = d.get(config_key, '')
@@ -182,6 +207,13 @@ def get_settings(s, config_key=None, to_json=False):
 
 
 def includeme(config):
+    """
+    初始化路由
+    
+    :param config: 配置表
+    :return: 
+    """
+
     config.add_request_method(lambda x: object(), 'props', reify=True)
     config.add_static_view(name='static', path='static', cache_max_age=3600)
     config.add_route('home', '/')

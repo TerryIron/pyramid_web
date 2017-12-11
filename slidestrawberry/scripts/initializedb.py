@@ -46,6 +46,13 @@ def usage(argv):
 
 
 def main(argv=sys.argv):
+    """
+    pyramid脚本支持，用于初始化数据库
+    
+    :param argv: 命令行参数
+    :return: 
+    """
+
     if len(argv) < 2:
         usage(argv)
     config_uri = argv[1]

@@ -24,6 +24,10 @@ __author__ = 'terry'
 
 
 class VShell(object):
+    """
+    命令行基础类
+    """
+
     def __init__(self):
         self.cmd_parser = argparse.ArgumentParser()
         self.sub_cmd = self.cmd_parser.add_subparsers()
@@ -70,6 +74,10 @@ class VShell(object):
 
 
 class SparkShell(VShell):
+    """
+    Spark命令行基础类
+    """
+
     def prepare(self):
         super(SparkShell, self).prepare()
         command = self.command('run', help_text=u'启动Spark脚本, 全局变量有如下'
