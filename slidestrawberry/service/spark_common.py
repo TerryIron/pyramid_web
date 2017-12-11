@@ -107,6 +107,26 @@ def hbase_handle(master_url, uri, raw=False):
 def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, drivers=None, files=None,
                     cache_dir=None, ext_args=None, master_url='spark://127.0.0.1:7077', hadoop_home=None,
                     enable_packages=False, cpu=None, mem=None):
+    """
+    执行Spark应用
+    
+    :param spark_bin: Spark执行路径
+    :param url: 数据库地址
+    :param script_name: 应用脚本地址
+    :param tables: 输入表
+    :param packages: 在线包支持
+    :param drivers: 本地包支持 
+    :param files: 本地文件配置支持
+    :param cache_dir: 工作目录
+    :param ext_args:  额外自定义参数
+    :param master_url: Spark地址
+    :param hadoop_home: Hadoop地址
+    :param enable_packages: 是否支持在线包
+    :param cpu: CPU个数
+    :param mem: 内存大小
+    :return: 
+    """
+
     if not os.path.exists(script_name):
         raise Exception('File {0} not exist!'.format(script_name))
     _cmd = ' '.join([spark_bin, '--master ', master_url])
@@ -190,6 +210,12 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
 
 
 def parse_params(info):
+    """
+    解析参数
+    :param info: 参数信息
+    :return: 
+    """
+
     if ',' in info and '^' in info:
         return [i.split(',') for i in info.split('^') if ',' in i]
     elif '^^' in info:
@@ -217,6 +243,15 @@ def _is_available_command(_cmd):
 
 
 def spark_data_frame(spark_session, db, table, cmd=None):
+    """
+    Spark生成DataFrame
+    :param spark_session: spark会话对象 
+    :param db: 库名
+    :param table: 表名
+    :param cmd: 命令
+    :return: 
+    """
+
     def _options(o):
         return o.options(lowerBound=1,
                          upperBound=10000000,
@@ -295,7 +330,18 @@ def spark_data_frame(spark_session, db, table, cmd=None):
 
 
 def read_spark_data_frame(spark_session, db, table, cmd=None, version='v1'):
+    """
+    Spark生成DataFrame
+    :param spark_session: spark会话对象 
+    :param db: 库名
+    :param table: 表名
+    :param cmd: 命令
+    :param version: 数据版本
+    :return: 
+    """
+
     __data_frame, __data_frame_type = spark_data_frame(spark_session, db, table, cmd)
+
     if _is_buildin_command(cmd):
         if __data_frame_type == 'mongodb':
             pipeline = "{'$match': {'Version': '" + version + "'}}"
