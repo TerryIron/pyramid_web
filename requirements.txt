@@ -31,3 +31,5 @@ pymssql
 pyspark>=2.2.0
 psycopg2
 cffi
+PyHive
+impyla
