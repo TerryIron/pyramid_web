@@ -79,6 +79,7 @@ def _parse_create_tables(engine, mod):
     :param mod: 模块路径
     :return: 
     """
+
     mod = __import__(mod, globals(), locals(), [mod.split('.')[-1]])
     if engine.name == 'hbase':
         mod_instances = get_mod_tables(mod)
@@ -193,6 +194,7 @@ def get_sqlalchemy_engine(url):
 def create_tables(engine, settings, prefix='model.'):
     """
     创建数据引擎中模型, 最好先导入模型模块
+    :param engine: 数据引擎代理
     :param settings: 配置表
     :param prefix: 特征
     :return: 
@@ -216,7 +218,7 @@ def get_session_factory(engine):
         return EngineFactory(engine.engine_factory, engine.name)
     else:
         factory = sessionmaker()
-        factory.configure(bind=engine)
+        factory.configure(bind=engine.engine)
         return EngineFactory(factory, engine.name)
 
 
@@ -241,12 +243,11 @@ def get_tm_session(session_factory, transaction_manager):
               dbsession = get_tm_session(session_factory, transaction.manager)
 
     """
+    dbsession = session_factory.factory()
     if session_factory.name == 'hbase':
-        dbsession = session_factory.factory()
         dbsession.open()
         return dbsession
     else:
-        dbsession = session_factory()
         zope.sqlalchemy.register(
             dbsession, transaction_manager=transaction_manager)
         return dbsession
