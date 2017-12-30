@@ -104,6 +104,9 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
     err_result = err_result if err_result else []
 
     def _request_checker(func):
+        class NotFound(object):
+            pass
+
         @functools.wraps(func)
         def __request_checker(request, *args, **kwargs):
             logger.info('request check on {0}, params:{1}'.format(arg_name,
@@ -114,8 +117,8 @@ def check_request_params(arg_name, need_exist=True, or_exist_args=None,  arg_par
                 _arg_value = request.params.get(arg_name,
                                                 default_value() if callable(default_value) else default_value)
             else:
-                _arg_value = request.params.get(arg_name)
-            if need_exist and not _arg_value:
+                _arg_value = request.params.get(arg_name, NotFound())
+            if need_exist and isinstance(_arg_value, NotFound):
                 _need_back = True
                 if or_exist_args:
                     for _or_exist in or_exist_args:
