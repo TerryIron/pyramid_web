@@ -166,6 +166,7 @@ def get_engine(settings, prefix='sql.'):
     if value.startswith('hbase:'):
         return get_hbase_engine(value)
     else:
+        settings['pool_recycle'] = 7200
         return Engine(engine_from_config(settings, prefix), 'sqlalchemy')
 
 
