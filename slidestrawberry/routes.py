@@ -41,6 +41,39 @@ def with_version(version_id, name):
         return str(name) + '_' + str(version_id)
 
 
+def filter_session(autoremove=True):
+    """
+    用于处理会话
+    
+    :param autoremove: 自动释放会话资源
+    :return: 
+    """
+
+    def _filter_session(func):
+        @functools.wraps(func)
+        def __filter_session(*args, **kwargs):
+            try:
+                if len(args) == 2:
+                    root_factory, request = args
+                else:
+                    request = args[0]
+                ret = func(request, **kwargs)
+                if autoremove:
+                    if hasattr(request.dbsession, 'remove') and callable(getattr(request.dbsession, 'remove')):
+                        request.dbsession.remove()
+                logger.info('Response:{0}'.format(ret))
+                return ret
+            except:
+                import traceback
+                logger.error(traceback.format_exc())
+                return Response(json.dumps([]), 500,
+                                headers={'Content-Type': 'application/json',
+                                         'Access-Control-Allow-Origin': '*'})
+
+        return __filter_session
+    return _filter_session
+
+
 def filter_response(allow_origin=False):
     """
     用于处理返回结果
