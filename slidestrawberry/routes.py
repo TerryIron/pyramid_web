@@ -74,7 +74,7 @@ def filter_session(autoremove=True):
     return _filter_session
 
 
-def filter_response(allow_origin=False):
+def filter_response(allow_origin=True):
     """
     用于处理返回结果
     
