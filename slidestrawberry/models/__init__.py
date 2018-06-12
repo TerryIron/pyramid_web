@@ -218,7 +218,7 @@ def get_session_factory(engine):
     if engine.name == 'hbase':
         return EngineFactory(engine.engine_factory, engine.name)
     else:
-        factory = sessionmaker(autoflush=False, connect_args={'charset': 'utf8'})
+        factory = sessionmaker(autoflush=False)
         factory.configure(bind=engine.engine)
         return EngineFactory(factory, engine.name)
 
