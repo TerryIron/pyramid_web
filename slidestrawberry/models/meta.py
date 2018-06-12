@@ -19,12 +19,15 @@
 #
 
 
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.schema import MetaData
 
 # Recommended naming convention used by Alembic, as various different database
 # providers will autogenerate vastly different names making migrations more
 # difficult. See: http://alembic.zzzcomputing.com/en/latest/naming.html
+"""
+定义命名格式
+"""
 NAMING_CONVENTION = {
     "ix": 'ix_%(column_0_label)s',
     "uq": "uq_%(table_name)s_%(column_0_name)s",
@@ -34,4 +37,23 @@ NAMING_CONVENTION = {
 }
 
 metadata = MetaData(naming_convention=NAMING_CONVENTION)
-Base = declarative_base(metadata=metadata)
+
+
+class BaseMixin(object):
+
+    # @classmethod
+    # @declared_attr
+    # def __tablename__(cls):
+    #     return cls.__name__.lower()
+
+    __table_args__ = {
+        'mysql_engine': 'InnoDB',
+        'mysql_charset': 'utf8',
+    }
+
+
+class _BaseMixin(BaseMixin):
+    pass
+
+
+Base = declarative_base(metadata=metadata, cls=_BaseMixin)
