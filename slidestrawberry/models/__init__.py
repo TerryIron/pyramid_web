@@ -189,7 +189,7 @@ def get_sqlalchemy_engine(url):
     :return: 
     """
 
-    return Engine(sessionmaker(bind=create_engine(url)), autoflush=False, 'sqlalchemy')
+    return Engine(sessionmaker(bind=create_engine(url)), autoflush=False, connect_args={'charset': 'utf8'}, 'sqlalchemy')
 
 
 def create_tables(engine, settings, prefix='model.'):
@@ -218,7 +218,7 @@ def get_session_factory(engine):
     if engine.name == 'hbase':
         return EngineFactory(engine.engine_factory, engine.name)
     else:
-        factory = sessionmaker(autoflush=False)
+        factory = sessionmaker(autoflush=False, connect_args={'charset': 'utf8'})
         factory.configure(bind=engine.engine)
         return EngineFactory(factory, engine.name)
 
