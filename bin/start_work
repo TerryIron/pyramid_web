@@ -7,8 +7,10 @@
 [ "$1" != "" ] && {
 FILE="$1"
 } || {
-FILE="development.ini"
+FILE="$(pwd)/../development.ini"
 }
-rm -rf /tmp/hive
+#rm -rf /tmp/hive
 rm -rf metastore_db
-celery worker --purge -A pyramid_celery.celery_app --ini $FILE
+rm -f celerybeat-schedule
+celery worker -l DEBUG --purge -A pyramid_celery.celery_app --ini $FILE
+#celery worker -l DEBUG -A pyramid_celery.celery_app --ini $FILE
