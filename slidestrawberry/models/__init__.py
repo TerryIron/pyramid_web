@@ -189,7 +189,7 @@ def get_sqlalchemy_engine(url):
     :return: 
     """
 
-    return Engine(sessionmaker(bind=create_engine(url)), connect_args={'charset': 'utf8'}, 'sqlalchemy')
+    return Engine(sessionmaker(bind=create_engine(url)), 'sqlalchemy')
 
 
 def create_tables(engine, settings, prefix='model.'):
