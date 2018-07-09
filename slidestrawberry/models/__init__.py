@@ -314,7 +314,10 @@ def includeme(config):
 
     """
 
-    settings = config.settings
+    try:
+        settings = config.settings
+    except:
+        settings = config.get_settings()
     engine = get_engine(settings=settings)
     session_factory = get_session_factory(engine=engine)
     create_tables(engine=engine, settings=settings)
