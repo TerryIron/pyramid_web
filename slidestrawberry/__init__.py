@@ -41,10 +41,12 @@ def main(global_config, **settings):
     """ This functionreturns a Pyramid WSGI application.
     """
     file_name = global_config.get('__file__')
+    settings['__file__'] = file_name
     config = Configurator(settings=settings)
     config.include('pyramid_tm')
     config.include('pyramid_jinja2')
     config.include('.models')
+    config.include('.plugins')
     config.include('.routes')
     config.configure_celery(file_name)
     app.ONE = {}
