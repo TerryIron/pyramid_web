@@ -31,3 +31,19 @@ $VENV/bin/pserve development.ini
 $VENV/bin/celery worker -A pyramid_celery.celery_app --ini development.ini
 $VENV/bin/celery beat -A pyramid_celery.celery_app --ini development.ini
 ```
+
+## Coding Started(如何提交代码)
+* 进入安装目录
+```
+cd <directory containing this file>
+```
+
+* 格式化代码
+```
+./reformat
+```
+
+* 提交代码
+```
+git pull origin master; git push origin master
+```
