@@ -50,7 +50,13 @@ class VShell(object):
             def __init__(self, command):
                 self.command = command
 
-            def install_argument(self, args, store_name, default=None, is_bool=False, help_text=None):
+            def install_argument(
+                    self,
+                    args,
+                    store_name,
+                    default=None,
+                    is_bool=False,
+                    help_text=None):
                 args = [args] if not isinstance(args, list) else args
                 if is_bool:
                     if default:
@@ -84,8 +90,11 @@ class SparkShell(VShell):
                                                 u'spark->SparkSession类'
                                                 u'sc->SparkContext类'
                                                 u'sql->spark.sql函数')
-        command.install_argument(['--cache-dir'], 'cache_dir', default='temp_dir',
-                                 help_text=u'脚本临时数据目录')
+        command.install_argument(
+            ['--cache-dir'],
+            'cache_dir',
+            default='temp_dir',
+            help_text=u'脚本临时数据目录')
         command.install_argument(['--config-db'], 'config_db', default='',
                                  help_text=u'脚本配置表')
         command.install_argument(['--base-db'], 'base_db', default='',

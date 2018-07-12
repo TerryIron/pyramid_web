@@ -32,25 +32,26 @@ doc_dir = os.path.dirname(__file__)
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'rst2pdf.pdfbuilder', 
+    'rst2pdf.pdfbuilder',
     'hieroglyph'
-    ]
+]
 
 ###########################################################################
 # regardless of the global pdf_compressed setting.
 # A comma-separated list of custom stylesheets. Example:
-    # #pdf_stylesheets = ['sphinx','kerning','a4']
-    # pdf_stylesheets = ['chinese','a4']
-    # # A list of folders to search for stylesheets. Example:
-    # pdf_style_path = ['.', '_styles']Add any paths that contain templates here, relative to this directory.
+# #pdf_stylesheets = ['sphinx','kerning','a4']
+# pdf_stylesheets = ['chinese','a4']
+# # A list of folders to search for stylesheets. Example:
+# pdf_style_path = ['.', '_styles']Add any paths that contain templates
+# here, relative to this directory.
 templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #from recommonmark.parser import CommonMarkParser
-#source_parsers = {
+# source_parsers = {
 #    '.md': CommonMarkParser,
-#}
+# }
 #source_suffix = ['.rst', '.md']
 # How many levels deep should the table of contents be?
 pdf_toc_depth = 9999
@@ -73,10 +74,10 @@ copyright = u'2017, Chijun'
 author = u'Chijun'
 
 pdf_documents = [
-    (master_doc , u'WizDataCenter', u'WizDataCenter Documentation', author),
+    (master_doc, u'WizDataCenter', u'WizDataCenter Documentation', author),
 ]
 pdf_font_path = [os.path.join(doc_dir, 'fonts')]
-pdf_stylesheets = ['a3','zh_CN']
+pdf_stylesheets = ['a3', 'zh_CN']
 pdf_language = "zh_CN"
 pdf_fit_mode = "shrink"
 # The version info for the project you're documenting, acts as replacement for
@@ -235,19 +236,19 @@ htmlhelp_basename = 'WizDataCenterdoc'
 
 # latex_elements = {
 # The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+# 'papersize': 'letterpaper',
 
 # The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+# 'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
+# 'preamble': '',
 
 # Latex figure (float) alignment
-#'figure_align': 'htbp',
+# 'figure_align': 'htbp',
 # }
 latex_elements = {
-  'preamble': '',
+    'preamble': '',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

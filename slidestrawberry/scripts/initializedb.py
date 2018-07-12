@@ -26,7 +26,7 @@ import transaction
 from pyramid.paster import (
     get_appsettings,
     setup_logging,
-    )
+)
 
 from pyramid.scripts.common import parse_vars
 
@@ -35,7 +35,7 @@ from ..models import (
     get_engine,
     get_session_factory,
     get_tm_session,
-    )
+)
 
 
 def usage(argv):
@@ -48,9 +48,9 @@ def usage(argv):
 def main(argv=sys.argv):
     """
     pyramid脚本支持，用于初始化数据库
-    
+
     :param argv: 命令行参数
-    :return: 
+    :return:
     """
 
     if len(argv) < 2:

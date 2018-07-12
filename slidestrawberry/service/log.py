@@ -49,6 +49,7 @@ def get_logger(name):
     logger = Logger(name)
     return logger
 
+
 # Color escape string
 COLOR_RED = '\033[1;31m'
 COLOR_GREEN = '\033[1;32m'
@@ -89,7 +90,14 @@ class Logger(logging.Logger):
     def _log(self, level, msg, args, exc_info=None, extra=None):
         if not self.logger:
             self._init()
-        super(Logger, self)._log(level, msg, args, exc_info=exc_info, extra=extra)
+        super(
+            Logger,
+            self)._log(
+            level,
+            msg,
+            args,
+            exc_info=exc_info,
+            extra=extra)
 
     def _init(self, colorful=True):
         if not self.logger:
