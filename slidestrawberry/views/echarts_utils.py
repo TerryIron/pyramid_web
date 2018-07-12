@@ -22,19 +22,19 @@ __author__ = 'terry'
 
 
 _ECHARTS_KEYS = {
-    'line':  ['legend', 'series', 'category'],
-    'bar':  ['legend', 'series', 'category'],
-    'pie':  ['legend', 'series'],
-    'radius':  ['legend', 'series', 'category', 'indicate'],
+    'line': ['legend', 'series', 'category'],
+    'bar': ['legend', 'series', 'category'],
+    'pie': ['legend', 'series'],
+    'radius': ['legend', 'series', 'category', 'indicate'],
 }
 
 
 def build_echarts_struct(chart_type=None):
     """
     生成echarts图表结构
-    :param chart_type: 图标类型 
-    :return: 
-    
+    :param chart_type: 图标类型
+    :return:
+
     """
     _e = {}
 
@@ -50,7 +50,7 @@ def build_echarts_struct(chart_type=None):
         return {
             'legend': {'data': []},
             'series': [],
-            'category': [], # x轴
+            'category': [],  # x轴
         }
 
     if chart_type in _ECHARTS_KEYS:
@@ -67,7 +67,7 @@ def build_echarts_series(legend_name, chart_type, data, **kwargs):
     :param chart_type: 图表类型
     :param data: 数据
     :param kwargs: 可变字段定义
-    :return: 
+    :return:
     """
 
     if chart_type == 'radius':
@@ -87,10 +87,20 @@ def build_echarts_series(legend_name, chart_type, data, **kwargs):
     return _data
 
 
-def append_echarts_series(echart_struct, legend_name, chart_type, data, **kwargs):
+def append_echarts_series(
+        echart_struct,
+        legend_name,
+        chart_type,
+        data,
+        **kwargs):
     if 'series' not in echart_struct:
         return
-    echart_struct['series'].append(build_echarts_series(legend_name, chart_type, data, **kwargs))
+    echart_struct['series'].append(
+        build_echarts_series(
+            legend_name,
+            chart_type,
+            data,
+            **kwargs))
 
 
 def append_echarts_legend(echart_struct, legend_list):

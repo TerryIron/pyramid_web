@@ -34,7 +34,7 @@ def main(global_config, **settings):
     程序主入口
     :param global_config: 全局配置表
     :param settings: 配置表
-    :return: 
+    :return:
     """
 
     GLOBAL_CONFIG.update(global_config)

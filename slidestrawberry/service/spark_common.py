@@ -76,7 +76,7 @@ def _get_handle(uri, raw=False):
             .builder \
             .enableHiveSupport() \
             .getOrCreate()
-    except:
+    except BaseException:
         _spark = SparkSession \
             .builder \
             .getOrCreate()
@@ -104,18 +104,30 @@ def hbase_handle(master_url, uri, raw=False):
 
 
 # run with Python Scripts
-def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, drivers=None, files=None,
-                    cache_dir=None, ext_args=None, master_url='spark://127.0.0.1:7077', hadoop_home=None,
-                    enable_packages=False, cpu=None, mem=None):
+def start_spark_app(
+        spark_bin,
+        url,
+        script_name,
+        tables=None,
+        packages=None,
+        drivers=None,
+        files=None,
+        cache_dir=None,
+        ext_args=None,
+        master_url='spark://127.0.0.1:7077',
+        hadoop_home=None,
+        enable_packages=False,
+        cpu=None,
+        mem=None):
     """
     执行Spark应用
-    
+
     :param spark_bin: Spark执行路径
     :param url: 数据库地址
     :param script_name: 应用脚本地址
     :param tables: 输入表
     :param packages: 在线包支持
-    :param drivers: 本地包支持 
+    :param drivers: 本地包支持
     :param files: 本地文件配置支持
     :param cache_dir: 工作目录
     :param ext_args:  额外自定义参数
@@ -124,7 +136,7 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
     :param enable_packages: 是否支持在线包
     :param cpu: CPU个数
     :param mem: 内存大小
-    :return: 
+    :return:
     """
 
     if not os.path.exists(script_name):
@@ -150,15 +162,16 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
     if not isinstance(url, dict):
         _cmd = parse_db_type(url, _cmd)
     else:
-        _url_keys = url.keys()
-        _url_keys.sort()
+        _url_keys = sorted(url.keys())
         _cmd = parse_db_type(url[_url_keys[0]], _cmd)
 
     if enable_packages:
         if not packages:
             _packages = []
         else:
-            _packages = [_p for _p in packages if _p] if isinstance(packages, str) else packages
+            _packages = [
+                _p for _p in packages if _p] if isinstance(
+                packages, str) else packages
         if _packages:
             _cmd += ' --packages ' + ','.join(_packages)
     if drivers:
@@ -186,8 +199,8 @@ def start_spark_app(spark_bin, url, script_name, tables=None, packages=None, dri
         if isinstance(tables, list):
             _cmd += ' '.join([' --base-table', ','.join(tables)])
         elif isinstance(tables, dict):
-            _cmd += ' '.join([' --base-table', '^'.join([','.join(tables[_key]) for _key in _url_keys
-                                                         if _key in tables])])
+            _cmd += ' '.join([' --base-table', '^'.join([','.join(tables[_key])
+                                                         for _key in _url_keys if _key in tables])])
     if cache_dir:
         if not os.path.exists(cache_dir):
             os.mkdir(cache_dir)
@@ -213,7 +226,7 @@ def parse_params(info):
     """
     解析参数
     :param info: 参数信息
-    :return: 
+    :return:
     """
 
     if ',' in info and '^' in info:
@@ -245,11 +258,11 @@ def _is_available_command(_cmd):
 def spark_data_frame(spark_session, db, table, cmd=None):
     """
     Spark生成DataFrame
-    :param spark_session: spark会话对象 
+    :param spark_session: spark会话对象
     :param db: 库名
     :param table: 表名
     :param cmd: 命令
-    :return: 
+    :return:
     """
 
     def _options(o):
@@ -332,15 +345,16 @@ def spark_data_frame(spark_session, db, table, cmd=None):
 def read_spark_data_frame(spark_session, db, table, cmd=None, version='v1'):
     """
     Spark生成DataFrame
-    :param spark_session: spark会话对象 
+    :param spark_session: spark会话对象
     :param db: 库名
     :param table: 表名
     :param cmd: 命令
     :param version: 数据版本
-    :return: 
+    :return:
     """
 
-    __data_frame, __data_frame_type = spark_data_frame(spark_session, db, table, cmd)
+    __data_frame, __data_frame_type = spark_data_frame(
+        spark_session, db, table, cmd)
 
     if _is_buildin_command(cmd):
         if __data_frame_type == 'mongodb':

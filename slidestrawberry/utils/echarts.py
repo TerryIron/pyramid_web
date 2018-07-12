@@ -22,10 +22,10 @@ __author__ = 'terry'
 
 
 _ECHARTS_KEYS = {
-    'line':  ['legend', 'series', 'category'],
-    'bar':  ['legend', 'series', 'category'],
-    'pie':  ['legend', 'series'],
-    'radius':  ['legend', 'series', 'category', 'indicate'],
+    'line': ['legend', 'series', 'category'],
+    'bar': ['legend', 'series', 'category'],
+    'pie': ['legend', 'series'],
+    'radius': ['legend', 'series', 'category', 'indicate'],
 }
 
 
@@ -44,7 +44,7 @@ def build_echarts_struct(chart_type=None):
         return {
             'legend': {'data': []},
             'series': [],
-            'category': [], # x轴
+            'category': [],  # x轴
         }
 
     if chart_type in _ECHARTS_KEYS:
@@ -72,10 +72,20 @@ def build_echarts_series(legend_name, chart_type, data, **kwargs):
     return _data
 
 
-def append_echarts_series(echart_struct, legend_name, chart_type, data, **kwargs):
+def append_echarts_series(
+        echart_struct,
+        legend_name,
+        chart_type,
+        data,
+        **kwargs):
     if 'series' not in echart_struct:
         return
-    echart_struct['series'].append(build_echarts_series(legend_name, chart_type, data, **kwargs))
+    echart_struct['series'].append(
+        build_echarts_series(
+            legend_name,
+            chart_type,
+            data,
+            **kwargs))
 
 
 def append_echarts_legend(echart_struct, legend_list):

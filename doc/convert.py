@@ -24,10 +24,16 @@ import commands
 input_dir = 'quick'
 output_dir = 'src'
 
-for i in commands.getoutput('find {0} -type f  | grep -v md$'.format(input_dir)).split('\n'):
+for i in commands.getoutput(
+        'find {0} -type f  | grep -v md$'.format(input_dir)).split('\n'):
     commands.getstatusoutput('cp {0} {1}'.format(i, output_dir))
 
-for i in commands.getoutput('find {0} | grep md$'.format(input_dir)).split('\n'):
+for i in commands.getoutput(
+        'find {0} | grep md$'.format(input_dir)).split('\n'):
     t = os.path.basename(i)
-    commands.getstatusoutput('pandoc --from=markdown --to=rst --output={0} {1}'.format(
-        os.path.join(output_dir, '.'.join(t.split('.')[:-1])) + '.rst', i))
+    commands.getstatusoutput(
+        'pandoc --from=markdown --to=rst --output={0} {1}'.format(
+            os.path.join(
+                output_dir, '.'.join(
+                    t.split('.')[
+                        :-1])) + '.rst', i))
