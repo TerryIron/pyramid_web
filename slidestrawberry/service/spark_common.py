@@ -27,9 +27,7 @@ import base64
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession, SQLContext
 
-
 __author__ = 'terry'
-
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +60,8 @@ def _get_handle_table_from_hbase(handle, table_name):
             'org.apache.hadoop.hbase.mapreduce.TableInputFormat',
             'org.apache.hadoop.hbase.io.ImmutableBytesWritable',
             'org.apache.hadoop.hbase.client.Result',
-            keyConverter='org.valux.converters.ImmutableBytesWritableToStringConverter',
+            keyConverter=
+            'org.valux.converters.ImmutableBytesWritableToStringConverter',
             valueConverter='org.valux.converters.HBaseResultToStringConverter',
             conf=conf)
         return rdd
@@ -95,8 +94,7 @@ def mongo_handle(master_url, uri, package_name, raw=False):
 
 
 def hbase_handle(master_url, uri, raw=False):
-    _spark = SparkContext(master=master_url,
-                          appName='HbaseInfoApp')
+    _spark = SparkContext(master=master_url, appName='HbaseInfoApp')
     if raw:
         return _spark
     else:
@@ -104,21 +102,20 @@ def hbase_handle(master_url, uri, raw=False):
 
 
 # run with Python Scripts
-def start_spark_app(
-        spark_bin,
-        url,
-        script_name,
-        tables=None,
-        packages=None,
-        drivers=None,
-        files=None,
-        cache_dir=None,
-        ext_args=None,
-        master_url='spark://127.0.0.1:7077',
-        hadoop_home=None,
-        enable_packages=False,
-        cpu=None,
-        mem=None):
+def start_spark_app(spark_bin,
+                    url,
+                    script_name,
+                    tables=None,
+                    packages=None,
+                    drivers=None,
+                    files=None,
+                    cache_dir=None,
+                    ext_args=None,
+                    master_url='spark://127.0.0.1:7077',
+                    hadoop_home=None,
+                    enable_packages=False,
+                    cpu=None,
+                    mem=None):
     """
     执行Spark应用
 
@@ -151,9 +148,10 @@ def start_spark_app(
     def parse_db_type(db_url, cmd_line):
         _d = urlparse.urlparse(db_url)
         if _d.scheme == 'mongodb':
-            _cmd_line = ' '.join([cmd_line,
-                                  '--conf spark.mongodb.input.uri=' + db_url,
-                                  '--conf spark.mongodb.output.uri=' + db_url])
+            _cmd_line = ' '.join([
+                cmd_line, '--conf spark.mongodb.input.uri=' + db_url,
+                '--conf spark.mongodb.output.uri=' + db_url
+            ])
             return _cmd_line
         else:
             return cmd_line
@@ -169,8 +167,7 @@ def start_spark_app(
         if not packages:
             _packages = []
         else:
-            _packages = [
-                _p for _p in packages if _p] if isinstance(
+            _packages = [_p for _p in packages if _p] if isinstance(
                 packages, str) else packages
         if _packages:
             _cmd += ' --packages ' + ','.join(_packages)
@@ -199,8 +196,12 @@ def start_spark_app(
         if isinstance(tables, list):
             _cmd += ' '.join([' --base-table', ','.join(tables)])
         elif isinstance(tables, dict):
-            _cmd += ' '.join([' --base-table', '^'.join([','.join(tables[_key])
-                                                         for _key in _url_keys if _key in tables])])
+            _cmd += ' '.join([
+                ' --base-table', '^'.join([
+                    ','.join(tables[_key]) for _key in _url_keys
+                    if _key in tables
+                ])
+            ])
     if cache_dir:
         if not os.path.exists(cache_dir):
             os.mkdir(cache_dir)
@@ -266,9 +267,8 @@ def spark_data_frame(spark_session, db, table, cmd=None):
     """
 
     def _options(o):
-        return o.options(lowerBound=1,
-                         upperBound=10000000,
-                         numPartitions=10)
+        return o.options(lowerBound=1, upperBound=10000000, numPartitions=10)
+
     _frame = None
     _d = urlparse.urlparse(db)
     _sqlcontext = SQLContext(spark_session.sparkContext)
@@ -312,14 +312,9 @@ def spark_data_frame(spark_session, db, table, cmd=None):
         _password = _d.password
         _hostname = _d.hostname
         _port = _d.port
-        _parts = (
-            _d.scheme,
-            ':'.join([str(_hostname), str(_port)]) if _hostname and _port else _hostname,
-            _d.path,
-            _d.params,
-            _d.query,
-            _d.fragment
-        )
+        _parts = (_d.scheme, ':'.join([str(_hostname),
+                                       str(_port)]) if _hostname and _port else
+                  _hostname, _d.path, _d.params, _d.query, _d.fragment)
         _new_url = urlparse.urlunparse(_parts)
         if _d.scheme == 'mysql':
             _driver = 'com.mysql.jdbc.Driver'
@@ -353,8 +348,8 @@ def read_spark_data_frame(spark_session, db, table, cmd=None, version='v1'):
     :return:
     """
 
-    __data_frame, __data_frame_type = spark_data_frame(
-        spark_session, db, table, cmd)
+    __data_frame, __data_frame_type = spark_data_frame(spark_session, db,
+                                                       table, cmd)
 
     if _is_buildin_command(cmd):
         if __data_frame_type == 'mongodb':

@@ -18,7 +18,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
 import unittest
 import transaction
 
@@ -41,9 +40,8 @@ class BaseTest(unittest.TestCase):
     """
 
     def setUp(self):
-        self.config = testing.setUp(settings={
-            'sqlalchemy.url': 'sqlite:///:memory:'
-        })
+        self.config = testing.setUp(
+            settings={'sqlalchemy.url': 'sqlite:///:memory:'})
         self.config.include('.models')
         settings = self.config.get_settings()
 

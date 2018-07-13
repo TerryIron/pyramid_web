@@ -30,11 +30,7 @@ doc_dir = os.path.dirname(__file__)
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-    'sphinx.ext.autodoc',
-    'rst2pdf.pdfbuilder',
-    'hieroglyph'
-]
+extensions = ['sphinx.ext.autodoc', 'rst2pdf.pdfbuilder', 'hieroglyph']
 
 ###########################################################################
 # regardless of the global pdf_compressed setting.
@@ -60,7 +56,6 @@ pdf_use_numbered_links = False
 # Background images fitting mode
 pdf_fit_background_mode = 'scale'
 ###########################################################################
-
 
 # The encoding of source files.
 source_encoding = 'utf-8-sig'
@@ -132,7 +127,6 @@ pygments_style = 'sphinx'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
-
 
 # -- Options for HTML output ----------------------------------------------
 
@@ -255,8 +249,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'WizDataCenter.tex', u'WizDataCenter Documentation',
-     author, 'manual'),
+    (master_doc, 'WizDataCenter.tex', u'WizDataCenter Documentation', author,
+     'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -279,19 +273,15 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
-
 # -- Options for manual page output ---------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'wizdatacenter', u'WizDataCenter Documentation',
-     [author], 1)
-]
+man_pages = [(master_doc, 'wizdatacenter', u'WizDataCenter Documentation',
+              [author], 1)]
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
-
 
 # -- Options for Texinfo output -------------------------------------------
 
@@ -299,9 +289,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'WizDataCenter', u'WizDataCenter Documentation',
-     author, 'WizDataCenter', 'One line description of project.',
-     'Miscellaneous'),
+    (master_doc, 'WizDataCenter', u'WizDataCenter Documentation', author,
+     'WizDataCenter', 'One line description of project.', 'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
