@@ -18,7 +18,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
 from sqlalchemy.exc import DBAPIError
 from pyramid.response import Response
 from pyramid.view import view_config

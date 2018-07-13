@@ -50,13 +50,12 @@ class VShell(object):
             def __init__(self, command):
                 self.command = command
 
-            def install_argument(
-                    self,
-                    args,
-                    store_name,
-                    default=None,
-                    is_bool=False,
-                    help_text=None):
+            def install_argument(self,
+                                 args,
+                                 store_name,
+                                 default=None,
+                                 is_bool=False,
+                                 help_text=None):
                 args = [args] if not isinstance(args, list) else args
                 if is_bool:
                     if default:
@@ -65,11 +64,13 @@ class VShell(object):
                         action = 'store_true'
                 else:
                     action = 'store'
-                self.command.add_argument(*args,
-                                          default=default,
-                                          dest=store_name,
-                                          action=action,
-                                          help=help_text)
+                self.command.add_argument(
+                    *args,
+                    default=default,
+                    dest=store_name,
+                    action=action,
+                    help=help_text)
+
         return SubCommand(sub_command)
 
     def prepare(self):
@@ -86,21 +87,26 @@ class SparkShell(VShell):
 
     def prepare(self):
         super(SparkShell, self).prepare()
-        command = self.command('run', help_text=u'启动Spark脚本, 全局变量有如下'
-                                                u'spark->SparkSession类'
-                                                u'sc->SparkContext类'
-                                                u'sql->spark.sql函数')
+        command = self.command(
+            'run',
+            help_text=u'启动Spark脚本, 全局变量有如下'
+            u'spark->SparkSession类'
+            u'sc->SparkContext类'
+            u'sql->spark.sql函数')
         command.install_argument(
             ['--cache-dir'],
             'cache_dir',
             default='temp_dir',
             help_text=u'脚本临时数据目录')
-        command.install_argument(['--config-db'], 'config_db', default='',
-                                 help_text=u'脚本配置表')
-        command.install_argument(['--base-db'], 'base_db', default='',
-                                 help_text=u'脚本数据库源, base64加码')
-        command.install_argument(['--base-table'], 'base_table', default='',
-                                 help_text=u'脚本数据表源')
-        command.install_argument(['--db-map'], 'db_map', default={},
-                                 help_text=u'脚本数据库源对照表')
+        command.install_argument(
+            ['--config-db'], 'config_db', default='', help_text=u'脚本配置表')
+        command.install_argument(
+            ['--base-db'],
+            'base_db',
+            default='',
+            help_text=u'脚本数据库源, base64加码')
+        command.install_argument(
+            ['--base-table'], 'base_table', default='', help_text=u'脚本数据表源')
+        command.install_argument(
+            ['--db-map'], 'db_map', default={}, help_text=u'脚本数据库源对照表')
         return command

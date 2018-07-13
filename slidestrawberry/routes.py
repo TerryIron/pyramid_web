@@ -59,23 +59,24 @@ def filter_session(autoremove=True):
                     request = args[0]
                 ret = func(request, **kwargs)
                 if autoremove:
-                    if hasattr(
-                        request.dbsession,
-                        'remove') and callable(
-                        getattr(
-                            request.dbsession,
-                            'remove')):
+                    if hasattr(request.dbsession, 'remove') and callable(
+                            getattr(request.dbsession, 'remove')):
                         request.dbsession.remove()
                 logger.info('Response:{0}'.format(ret))
                 return ret
             except BaseException:
                 import traceback
                 logger.error(traceback.format_exc())
-                return Response(json.dumps([]), 500,
-                                headers={'Content-Type': 'application/json',
-                                         'Access-Control-Allow-Origin': '*'})
+                return Response(
+                    json.dumps([]),
+                    500,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    })
 
         return __filter_session
+
     return _filter_session
 
 
@@ -96,37 +97,43 @@ def filter_response(allow_origin=True):
                 else:
                     request = args[0]
                 if allow_origin:
-                    request.response.headers['Access-Control-Allow-Origin'] = '*'
+                    request.response.headers[
+                        'Access-Control-Allow-Origin'] = '*'
                 ret = func(request, **kwargs)
                 logger.info('Response:{0}'.format(ret))
                 return ret
             except BaseException:
                 import traceback
                 logger.error(traceback.format_exc())
-                return Response(json.dumps([]), 500,
-                                headers={'Content-Type': 'application/json',
-                                         'Access-Control-Allow-Origin': '*'})
+                return Response(
+                    json.dumps([]),
+                    500,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    })
+
         return __filter_response
+
     return _filter_response
 
 
-def check_request_params(
-        arg_name,
-        need_exist=True,
-        or_exist_args=None,
-        arg_parser=None,
-        default_value=None,
-        err_result=None,
-        expect_values=None,
-        expect_request_arg_name=None,
-        expect_arg_name=None,
-        expect_out_name=None,
-        unexpected_values=None,
-        unexpected_request_arg_name=None,
-        unexpected_arg_name=None,
-        unexpected_out_name=None,
-        out_param_name='dict',
-        out_values_param_name='props'):
+def check_request_params(arg_name,
+                         need_exist=True,
+                         or_exist_args=None,
+                         arg_parser=None,
+                         default_value=None,
+                         err_result=None,
+                         expect_values=None,
+                         expect_request_arg_name=None,
+                         expect_arg_name=None,
+                         expect_out_name=None,
+                         unexpected_values=None,
+                         unexpected_request_arg_name=None,
+                         unexpected_arg_name=None,
+                         unexpected_out_name=None,
+                         out_param_name='dict',
+                         out_values_param_name='props'):
     """
     用于检查和处理请求参数
 
@@ -157,14 +164,15 @@ def check_request_params(
 
         @functools.wraps(func)
         def __request_checker(request, *args, **kwargs):
-            logger.info(
-                'request check on {0}, params:{1}'.format(
-                    arg_name, request.params))
+            logger.info('request check on {0}, params:{1}'.format(
+                arg_name, request.params))
             if not hasattr(request, out_values_param_name):
                 setattr(request, out_values_param_name, {})
             if default_value:
                 _arg_value = request.params.get(
-                    arg_name, default_value() if callable(default_value) else default_value)
+                    arg_name,
+                    default_value()
+                    if callable(default_value) else default_value)
             else:
                 _arg_value = request.params.get(arg_name, NotFound())
             if need_exist and isinstance(_arg_value, NotFound):
@@ -182,7 +190,8 @@ def check_request_params(
                         500,
                         headers={
                             'Content-Type': 'application/json',
-                            'Access-Control-Allow-Origin': '*'})
+                            'Access-Control-Allow-Origin': '*'
+                        })
             if callable(expect_values):
                 if expect_request_arg_name:
                     _expect_value = expect_values(
@@ -214,24 +223,26 @@ def check_request_params(
             def _err_back(_key=None):
                 if not _key:
                     logger.error(
-                        'check arg_name:{0} failed, expect:{1}, unexpected:{2}' .format(
-                            arg_name, _expect_value, _unexpected_value))
+                        'check arg_name:{0} failed, expect:{1}, unexpected:{2}'.
+                        format(arg_name, _expect_value, _unexpected_value))
                 else:
                     logger.error(
-                        'check arg_name:{0} failed, error key:{1} expect:{2}, unexpected:{3}' .format(
-                            arg_name, _key, _expect_value, _unexpected_value))
-                return Response(json.dumps(err_result), 500,
-                                headers={'Content-Type': 'application/json',
-                                         'Access-Control-Allow-Origin': '*'})
+                        'check arg_name:{0} failed, error key:{1} expect:{2}, unexpected:{3}'.
+                        format(arg_name, _key, _expect_value,
+                               _unexpected_value))
+                return Response(
+                    json.dumps(err_result),
+                    500,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    })
 
             if _arg_value:
                 if arg_parser:
                     _arg_value = arg_parser(_arg_value)
-                if isinstance(
-                        _arg_value,
-                        str) or isinstance(
-                        _arg_value,
-                        unicode):
+                if isinstance(_arg_value, str) or isinstance(
+                        _arg_value, unicode):
                     if _expect_value and _arg_value not in _expect_value:
                         return _err_back()
                     if _unexpected_value and _arg_value in _unexpected_value:
@@ -246,11 +257,12 @@ def check_request_params(
                 setattr(request, out_param_name, {})
             _request_dict = getattr(request, out_param_name)
             _request_dict[arg_name] = _arg_value
-            logger.info(
-                'request check off {0}, params:{1}'.format(
-                    arg_name, request.params))
+            logger.info('request check off {0}, params:{1}'.format(
+                arg_name, request.params))
             return func(request, *args, **kwargs)
+
         return __request_checker
+
     return _request_checker
 
 
@@ -286,6 +298,4 @@ def includeme(config):
     _version = '1.0'
 
     config.add_route(
-        with_version(
-            _version, 'test'), with_version(
-            _version, '/test'))
+        with_version(_version, 'test'), with_version(_version, '/test'))

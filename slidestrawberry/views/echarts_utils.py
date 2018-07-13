@@ -20,7 +20,6 @@
 
 __author__ = 'terry'
 
-
 _ECHARTS_KEYS = {
     'line': ['legend', 'series', 'category'],
     'bar': ['legend', 'series', 'category'],
@@ -41,14 +40,14 @@ def build_echarts_struct(chart_type=None):
     def _build_echarts(_key):
         if _key in ['legend']:
             _e[_key] = {'data': []}
-        elif _key in ['series',
-                      'category',
-                      'indicate']:
+        elif _key in ['series', 'category', 'indicate']:
             _e[_key] = []
 
     if not chart_type:
         return {
-            'legend': {'data': []},
+            'legend': {
+                'data': []
+            },
             'series': [],
             'category': [],  # x轴
         }
@@ -71,36 +70,20 @@ def build_echarts_series(legend_name, chart_type, data, **kwargs):
     """
 
     if chart_type == 'radius':
-        _data = {
-            'name': legend_name,
-            'type': chart_type,
-            'value': data
-        }
+        _data = {'name': legend_name, 'type': chart_type, 'value': data}
     else:
-        _data = {
-            'name': legend_name,
-            'type': chart_type,
-            'data': data
-        }
+        _data = {'name': legend_name, 'type': chart_type, 'data': data}
     for _key, _value in kwargs.items():
         _data[_key] = _value
     return _data
 
 
-def append_echarts_series(
-        echart_struct,
-        legend_name,
-        chart_type,
-        data,
-        **kwargs):
+def append_echarts_series(echart_struct, legend_name, chart_type, data,
+                          **kwargs):
     if 'series' not in echart_struct:
         return
     echart_struct['series'].append(
-        build_echarts_series(
-            legend_name,
-            chart_type,
-            data,
-            **kwargs))
+        build_echarts_series(legend_name, chart_type, data, **kwargs))
 
 
 def append_echarts_legend(echart_struct, legend_list):

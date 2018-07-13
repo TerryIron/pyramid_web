@@ -18,7 +18,6 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
 from pyramid.view import notfound_view_config
 
 

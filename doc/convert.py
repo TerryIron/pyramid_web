@@ -33,7 +33,4 @@ for i in commands.getoutput(
     t = os.path.basename(i)
     commands.getstatusoutput(
         'pandoc --from=markdown --to=rst --output={0} {1}'.format(
-            os.path.join(
-                output_dir, '.'.join(
-                    t.split('.')[
-                        :-1])) + '.rst', i))
+            os.path.join(output_dir, '.'.join(t.split('.')[:-1])) + '.rst', i))

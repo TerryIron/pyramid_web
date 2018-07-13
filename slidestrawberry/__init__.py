@@ -18,13 +18,10 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
 from pyramid.config import Configurator
 from pyramid_celery import celery_app as app
 
-
 __version__ = (0, 1, 0)
-
 
 GLOBAL_CONFIG = {}
 
