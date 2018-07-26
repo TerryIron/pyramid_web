@@ -28,11 +28,11 @@ cffi
 psycopg2
 psycopg2-binary
 zope.sqlalchemy
+setuptools==37.0.0
 happybase
 mongoengine
-numpy
-setuptools==37.0.0
 pymssql
-pyspark>=2.2.0
 PyHive
 impyla
+#numpy
+#pyspark>=2.2.0
