@@ -21,7 +21,7 @@
 from pyramid.view import view_config
 from pyramid_handlers import action
 
-from slidestrawberry.core import with_version, filter_response, check_request_params
+from slidestrawberry.core import with_version, filter_response, check_request_params, BaseHandler
 from slidestrawberry.service.log import get_logger
 
 __author__ = 'terry'
@@ -42,24 +42,15 @@ def test(request):
 
 
 
-class Test(object):
-    __autoexpose__ = None
-
-    def __init__(self, request):
-        self.request = request
-
-    @action(renderer='json')
+class Test(BaseHandler):
     def get(self):
         pass
 
-    @action(renderer='json')
     def post(self):
         pass
 
-    @action(renderer='json')
     def put(self):
         pass
 
-    @action(renderer='json')
     def delete(self):
         pass
