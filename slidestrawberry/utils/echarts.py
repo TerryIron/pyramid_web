@@ -29,6 +29,12 @@ _ECHARTS_KEYS = {
 
 
 def build_echarts_struct(chart_type=None):
+    """
+    生成echarts图表结构
+    :param chart_type: 图标类型
+    :return:
+
+    """
     _e = {}
 
     def _build_echarts(_key):
@@ -54,6 +60,15 @@ def build_echarts_struct(chart_type=None):
 
 
 def build_echarts_series(legend_name, chart_type, data, **kwargs):
+    """
+    生成echarts结构数据
+    :param legend_name: 标识名称
+    :param chart_type: 图表类型
+    :param data: 数据
+    :param kwargs: 可变字段定义
+    :return:
+    """
+
     if chart_type == 'radius':
         _data = {'name': legend_name, 'type': chart_type, 'value': data}
     else:
