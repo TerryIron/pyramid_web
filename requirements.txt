@@ -11,14 +11,15 @@ Redis-Sentinel-Url
 requests==2.11.1
 haystack==0.36
 whoosh==2.7.4
+pyramid_handlers
 pyramid_jinja2
 pyramid_tm
 pyramid_beaker
+pyramid_celery==3.0.0
+pyramid_debugtoolbar
 gevent
 celery==4.0
 celery_once==1.2.0
-pyramid_celery==3.0.0
-pyramid_debugtoolbar
 waitress
 WebTest>=1.3.1
 pytest
