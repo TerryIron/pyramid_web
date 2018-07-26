@@ -18,6 +18,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from pyramid_handlers import action
 from pyramid.response import Response
 import functools
 import json
@@ -163,6 +164,10 @@ def check_request_params(arg_name,
 
         @functools.wraps(func)
         def __request_checker(request, *args, **kwargs):
+            _request = None
+            if not hasattr(request, 'params'):
+                _request = request
+                request = _request.request
             logger.info('request check on {0}, params:{1}'.format(
                 arg_name, request.params))
             if not hasattr(request, out_values_param_name):
@@ -258,6 +263,8 @@ def check_request_params(arg_name,
             _request_dict[arg_name] = _arg_value
             logger.info('request check off {0}, params:{1}'.format(
                 arg_name, request.params))
+            if _request:
+                request = _request
             return func(request, *args, **kwargs)
 
         return __request_checker
@@ -294,3 +301,34 @@ def includeme(config):
     config.add_request_method(lambda x: object(), 'props', reify=True)
     config.add_static_view(name='static', path='static', cache_max_age=3600)
     config.include('.routes')
+
+
+class BaseHandler(object):
+    __autoexpose__ = None
+
+    def __init__(self, request):
+        self.request = request
+
+    @action(renderer='json')
+    def __call__(self):
+        _action = {
+            'GET': self.get,
+            'POST': self.post,
+            'PUT': self.put,
+            'DELETE': self.delete,
+        }
+        if self.request.method in _action:
+            return _action[self.request.method]()
+        return {}
+
+    def post(self):
+        pass
+
+    def get(self):
+        pass
+
+    def put(self):
+        pass
+
+    def delete(self):
+        pass
