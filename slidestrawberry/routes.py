@@ -20,6 +20,7 @@
 
 from pyramid.response import Response
 
+from slidestrawberry.core import with_version
 from slidestrawberry.view.v1.test import Test as test_handler
 
 

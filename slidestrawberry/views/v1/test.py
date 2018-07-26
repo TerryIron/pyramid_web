@@ -18,7 +18,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from pyramid.view import view_config, resource
+from pyramid.view import view_config
+from pyramid_handlers import action
 
 from slidestrawberry.core import with_version, filter_response, check_request_params
 from slidestrawberry.service.log import get_logger
@@ -41,19 +42,24 @@ def test(request):
 
 
 
-@resource(collection_path=with_version(VERSION, 'test_handler'))
 class Test(object):
+    __autoexpose__ = None
+
     def __init__(self, request):
         self.request = request
 
+    @action(renderer='json')
     def get(self):
         pass
 
+    @action(renderer='json')
     def post(self):
         pass
 
+    @action(renderer='json')
     def put(self):
         pass
 
+    @action(renderer='json')
     def delete(self):
         pass
