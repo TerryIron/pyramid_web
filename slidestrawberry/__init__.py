@@ -47,5 +47,5 @@ def main(global_config, **settings):
     config.include('.routes')
     config.configure_celery(file_name)
     app.ONE = {}
-    config.scan()
+    config.scan('.views')
     return config.make_wsgi_app()
