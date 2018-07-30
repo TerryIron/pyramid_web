@@ -255,10 +255,11 @@ class PluginLoader(object):
         cls.sys.path = ['', _plugin_path]
         cls.sys.path.insert(1, _lib_path)
         cls.sys.path.insert(1, op.join(_lib_path, 'env/lib/python2.7'))
-        cls.sys.path.insert(
-            1, op.join(_lib_path, 'env/local/lib/python2.7/site-packages'))
+        cls.sys.path.insert(1, op.join(_lib_path, 'env/lib/python2.7/lib-dynload'))
         cls.sys.path.insert(
             1, op.join(_lib_path, 'env/lib/python2.7/site-packages'))
+        cls.sys.path.insert(
+            1, op.join(_lib_path, 'env/local/lib/python2.7/site-packages'))
         cls.sys.path.insert(1, '/usr/lib/python2.7')
         return cls.sys
 
