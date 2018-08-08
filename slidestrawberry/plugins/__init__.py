@@ -462,29 +462,12 @@ class PluginLoader(object):
     def start_plugins(cls):
         cls._LOGGER = cls.get_logger(__name__)
         _path = cls.init_plugins()
-        __pids = []
-
-        def kill_pid(pid):
-            try:
-                os.kill(pid, signal.SIGTERM)
-            except OSError:
-                pass
-
-        def kill_process(*args, **kwargs):
-            for _pid in __pids:
-                kill_pid(_pid)
 
         def _start_plugins():
             cls._load_plugins(_path)
             cls._run_plugins()
 
-        from multiprocessing import Process
-        p = Process(target=_start_plugins)
-        p.daemon = True
-        p.start()
-
-        import signal
-        signal.signal(signal.SIGTERM, kill_process)
+        cls.pool.apply_async(_start_plugins())
 
 
 class PluginLoaderV1(PluginLoader):
