@@ -383,7 +383,6 @@ class PluginLoader(object):
                   'PluginLoader.plugin_loops.update(dict({0}=__error__))'.format(pipe_name), _env)
             exec ('PluginLoader.results = __result__', _env)
 
-        # cls.pool.apply_async(call_plugin_func())
         call_plugin_func()
 
     @classmethod
