@@ -165,8 +165,12 @@ class PluginLoader(object):
         return name.split('.')[0]
 
     @classmethod
+    def list_plugins(cls):
+        return cls.__plug_globals__.keys()
+
+    @classmethod
     def import_plugin(cls, name):
-        _name = 'plugin_' + str(name)
+        _name = str(name)
         return cls.__plug_globals__[
             _name] if _name in cls.__plug_globals__ else None
 
