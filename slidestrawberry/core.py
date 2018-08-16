@@ -20,9 +20,12 @@
 
 from pyramid_handlers import action
 from pyramid.response import Response
+from pyramid.exceptions import HTTPNotFound
 import functools
 import json
 import logging
+
+from slidestrawberry.views.notfound import not_found
 
 logger = logging.getLogger(__name__)
 
@@ -317,18 +320,26 @@ class BaseHandler(object):
             'PUT': self.put,
             'DELETE': self.delete,
         }
+        _ret = {}
         if self.request.method in _action:
-            return _action[self.request.method]()
-        return {}
+            try:
+                _ret = _action[self.request.method]()
+            except HTTPNotFound:
+                return not_found(self.request)
+            except Exception as e:
+                raise e
+        if not _ret:
+            _ret = {}
+        return _ret
 
     def post(self):
-        pass
+        raise HTTPNotFound()
 
     def get(self):
-        pass
+        raise HTTPNotFound()
 
     def put(self):
-        pass
+        raise HTTPNotFound()
 
     def delete(self):
-        pass
+        raise HTTPNotFound()

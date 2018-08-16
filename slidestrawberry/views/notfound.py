@@ -18,10 +18,16 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import os
+
 from pyramid.view import notfound_view_config
+from pyramid.renderers import render_to_response
+
+
+not_found_data = {}
 
 
 @notfound_view_config(renderer='../static/asset/404.jinja2')
-def notfound_view(request):
+def not_found(request):
     request.response.status = 404
-    return {}
+    return render_to_response('../static/asset/404.jinja2', not_found_data)
