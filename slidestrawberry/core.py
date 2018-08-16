@@ -45,7 +45,7 @@ def with_version(version_id, name):
         return str(name) + '_' + str(version_id)
 
 
-def filter_session(autoremove=True):
+def filter_session(autoremove):
     """
     用于处理会话
 
@@ -57,14 +57,18 @@ def filter_session(autoremove=True):
         @functools.wraps(func)
         def __filter_session(*args, **kwargs):
             try:
-                if len(args) == 2: root_factory, request = args
+                if len(args) == 2:
+                    root_factory, request = args
                 else:
                     request = args[0]
                 ret = func(request, **kwargs)
                 if autoremove:
-                    if hasattr(request.dbsession, 'remove') and callable(
-                            getattr(request.dbsession, 'remove')):
-                        request.dbsession.remove()
+                    if hasattr(request, 'request'):
+                        request = getattr(request, 'request')
+                    if hasattr(request, '_session'):
+                        _session = getattr(request, '_session')
+                        if hasattr(_session, 'remove'):
+                            _session.remove()
                 logger.info('Response:{0}'.format(ret))
                 return ret
             except BaseException:
@@ -83,7 +87,7 @@ def filter_session(autoremove=True):
     return _filter_session
 
 
-def filter_response(allow_origin=True):
+def filter_response(allow_origin):
     """
     用于处理返回结果
 
@@ -308,6 +312,7 @@ def includeme(config):
 
 class BaseHandler(object):
     __autoexpose__ = None
+    __name__ = ''
 
     def __init__(self, request):
         self.request = request
@@ -327,7 +332,8 @@ class BaseHandler(object):
             except HTTPNotFound:
                 return not_found(self.request)
             except Exception as e:
-                raise e
+                import traceback
+                logger.error(traceback.format_exc())
         if not _ret:
             _ret = {}
         return _ret
