@@ -133,7 +133,7 @@ def check_request_params(arg_name,
                          unexpected_arg_name=None,
                          unexpected_out_name=None,
                          out_param_name='dict',
-                         out_values_param_name='props'):
+                         out_values_param_name='parm'):
     """
     用于检查和处理请求参数
 
@@ -243,7 +243,7 @@ def check_request_params(arg_name,
                     })
 
             if _arg_value:
-                if arg_parser:
+                if arg_parser and not isinstance(_arg_value, NotFound):
                     _arg_value = arg_parser(_arg_value)
                 if isinstance(_arg_value, str) or isinstance(
                         _arg_value, unicode):
@@ -251,7 +251,7 @@ def check_request_params(arg_name,
                         return _err_back()
                     if _unexpected_value and _arg_value in _unexpected_value:
                         return _err_back()
-                else:
+                elif not isinstance(_arg_value, NotFound):
                     for _arg in _arg_value:
                         if _expect_value and _arg not in _expect_value:
                             return _err_back(_arg)
