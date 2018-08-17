@@ -65,8 +65,8 @@ def filter_session(autoremove):
                 if autoremove:
                     if hasattr(request, 'request'):
                         request = getattr(request, 'request')
-                    if hasattr(request, '_session'):
-                        _session = getattr(request, '_session')
+                    if hasattr(request, 'dbsession'):
+                        _session = getattr(request, 'dbsession')
                         if hasattr(_session, 'remove'):
                             _session.remove()
                 logger.info('Response:{0}'.format(ret))
@@ -175,11 +175,11 @@ def check_request_params(arg_name,
             if not hasattr(request, 'params'):
                 _request = request
                 request = _request.request
-            logger.info('request check on {0}, params:{1}'.format(
-                arg_name, request.params))
+            logger.info('request:{0} check on {1}, params:{2}'.format(
+                request, arg_name, request.params))
             if not hasattr(request, out_values_param_name):
                 setattr(request, out_values_param_name, {})
-            if default_value:
+            if default_value is not None:
                 _arg_value = request.params.get(
                     arg_name,
                     default_value()
