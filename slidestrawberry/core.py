@@ -67,8 +67,8 @@ def filter_session(autoremove):
                         request = getattr(request, 'request')
                     if hasattr(request, 'dbsession'):
                         _session = getattr(request, 'dbsession')
-                        if hasattr(_session, 'remove'):
-                            _session.remove()
+                        if hasattr(_session, 'close'):
+                            _session.close()
                 logger.info('Response:{0}'.format(ret))
                 return ret
             except BaseException:
