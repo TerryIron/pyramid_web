@@ -67,8 +67,10 @@ def filter_session(autoremove):
                         request = getattr(request, 'request')
                     if hasattr(request, 'dbsession'):
                         _session = getattr(request, 'dbsession')
-                        if hasattr(_session, 'close'):
-                            _session.close()
+                        from zope.sqlalchemy import mark_changed
+                        mark_changed(_session)
+                        # if hasattr(_session, 'close'):
+                        #     _session.close()
                 logger.info('Response:{0}'.format(ret))
                 return ret
             except BaseException:
