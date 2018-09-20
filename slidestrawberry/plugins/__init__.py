@@ -151,7 +151,6 @@ class PluginLoader(object):
     config_channel = 'config'
     result_channel = tuple(['data', 'result'] + [config_channel])
 
-
     globals = {}
     paths = []
     paths.extend(sys.path)
@@ -256,16 +255,16 @@ class PluginLoader(object):
 
     @classmethod
     def get_plugin_import_path(cls, name, lang='python2'):
-        import os.path as op
+        import os
         _plugin_path = cls.get_plugin_path()
-        _lib_path = cls.__plug_libpath__.get(name, op.join(_plugin_path, name))
+        _lib_path = cls.__plug_libpath__.get(name, os.path.join(_plugin_path, name))
         reload(cls.sys)
         cls.sys.path = ['', _plugin_path]
         cls.sys.path.insert(1, '/usr/lib/python2.7')
-        cls.sys.path.insert(1, op.join(_lib_path, 'env/lib/python2.7/lib-dynload'))
-        cls.sys.path.insert(1, op.join(_lib_path, 'env/lib/python2.7/site-packages'))
-        cls.sys.path.insert(1, op.join(_lib_path, 'env/local/lib/python2.7/site-packages'))
-        cls.sys.path.insert(1, op.join(_lib_path, 'env/lib/python2.7'))
+        cls.sys.path.insert(1, os.path.join(_lib_path, 'env/lib/python2.7/lib-dynload'))
+        cls.sys.path.insert(1, os.path.join(_lib_path, 'env/lib/python2.7/site-packages'))
+        cls.sys.path.insert(1, os.path.join(_lib_path, 'env/local/lib/python2.7/site-packages'))
+        cls.sys.path.insert(1, os.path.join(_lib_path, 'env/lib/python2.7'))
         cls.sys.path.insert(1, _lib_path)
         return cls.sys
 
