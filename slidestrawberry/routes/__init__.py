@@ -21,7 +21,7 @@
 from pyramid.response import Response
 
 from slidestrawberry.core import with_version
-from slidestrawberry.view.v1.test import Test as test_handler
+from slidestrawberry.routes import test
 
 
 def includeme(config):
@@ -33,10 +33,4 @@ def includeme(config):
     """
 
     config.add_route('home', '/')
-    # -- API版本 --
-    _version = '1.0'
-
-    config.add_route(
-        with_version(_version, 'test'), with_version(_version, '/test'))
-    config.add_handler(
-        with_version(_version, 'test_handler'), with_version(_version, '/test_handler'), test_handler)
+    test.includeme(config)
