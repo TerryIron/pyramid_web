@@ -18,7 +18,7 @@ pyramid_beaker
 pyramid_celery==3.0.0
 pyramid_debugtoolbar
 gevent
-celery==4.0
+celery==4.2.1
 celery_once==1.2.0
 waitress
 WebTest>=1.3.1
