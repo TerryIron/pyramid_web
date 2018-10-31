@@ -318,12 +318,13 @@ class BaseHandler(object):
 
     def __init__(self, request):
         self.request = request
+        self.data = dict()
 
     def before(self):
         pass
 
     def after(self):
-        pass
+        self.data.clear()
 
     @action(renderer='json')
     def __call__(self):
