@@ -319,6 +319,12 @@ class BaseHandler(object):
     def __init__(self, request):
         self.request = request
 
+    def before(self):
+        pass
+
+    def after(self):
+        pass
+
     @action(renderer='json')
     def __call__(self):
         _action = {
@@ -329,6 +335,7 @@ class BaseHandler(object):
         }
         _ret = {}
         if self.request.method in _action:
+            self.before()
             try:
                 _ret = _action[self.request.method]()
             except HTTPNotFound:
@@ -336,6 +343,7 @@ class BaseHandler(object):
             except Exception as e:
                 import traceback
                 logger.error(traceback.format_exc())
+            self.after()
         if not _ret:
             _ret = {}
         return _ret
