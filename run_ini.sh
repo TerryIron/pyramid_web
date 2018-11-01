@@ -1,12 +1,13 @@
 #!/bin/bash
 
+PWD=$(pwd)
 CONFIG=$1
 
 [ "$CONFIG"  == "" ] && {
-        CONFIG="$(pwd)/production.ini"
+        CONFIG="$PWD/production.ini"
 } || { 
     [ "$CONFIG" == "-d" ] && {
-        CONFIG="$(pwd)/development.ini"
+        CONFIG="$PWD/development.ini"
     }
 }
 
@@ -17,7 +18,6 @@ for i in $(find | grep setup.py$); do
     }
 done
 
-PWD=$(pwd)
 export PYTHONPATH=$PWD
-echo python $(which pserve) $CONFIG
+cd $PWD
 python $(which pserve) $CONFIG
