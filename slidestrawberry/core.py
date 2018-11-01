@@ -334,7 +334,7 @@ class BaseHandler(object):
             'PUT': self.put,
             'DELETE': self.delete,
         }
-        _ret = {}
+        _ret, _err, _status = {}, None, 200
         if self.request.method in _action:
             self.before()
             try:
@@ -344,9 +344,16 @@ class BaseHandler(object):
             except Exception as e:
                 import traceback
                 logger.error(traceback.format_exc())
+                _err = e
+                if hasattr(e, 'code'):
+                    _status = getattr(e, 'code')
             self.after()
-        if not _ret:
-            _ret = {}
+        _ret = {
+            'data': _ret,
+            'code': _status
+        }
+        if _err:
+            _ret['err_msg'] = _err.message
         return _ret
 
     def post(self):
