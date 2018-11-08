@@ -390,7 +390,7 @@ def includeme(config):
     _create_tables(engine=engine, settings=settings)
     config.registry['dbsession_factory'] = session_factory
 
-    def _call(**kwargs):
+    def _call(x):
         return get_tm_session(session_factory, transaction.manager)
 
     config.add_request_method(

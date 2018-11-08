@@ -18,7 +18,6 @@
 #
 
 from pyramid_handlers import action
-from pyramid.response import Response
 from pyramid.exceptions import HTTPNotFound
 import functools
 import json
@@ -327,21 +326,6 @@ class BaseHandler(object):
     def __init__(self, request):
         self.request = request
         self.data = dict()
-        self.origin = False
-        self.pass_result = None
-        self.err_result = None
-
-    def set_result(self, do_result=None, err_result=None):
-        if callable(do_result):
-            self.pass_result = do_result
-        if callable(err_result):
-            self.err_result = err_result
-
-    def enable_origin(self):
-        self.origin = True
-
-    def disable_origin(self):
-        self.origin = False
 
     def before(self):
         pass
@@ -357,27 +341,10 @@ class BaseHandler(object):
             'PUT': self.put,
             'DELETE': self.delete,
         }
-        _ret, _err, _status = {}, None, 200
+        _ret = {}
         if self.request.method in _action:
             self.before()
-            if self.origin:
-                self.request.response.headers['Access-Control-Allow-Origin'] = '*'
-            try:
-                _ret = _action[self.request.method]()
-                if self.pass_result:
-                    _ret = self.pass_result(_ret)
-                else:
-                    _ret = _result_pass(_ret)
-            except HTTPNotFound:
-                return not_found(self.request)
-            except Exception as e:
-                self.request.response.status_int = 500
-                import traceback
-                logger.error(traceback.format_exc())
-                if self.err_result:
-                    _ret = self.err_result(e)
-                else:
-                    _ret = _result_fail(e)
+            _ret = _action[self.request.method]()
             self.after()
         return _ret
 
