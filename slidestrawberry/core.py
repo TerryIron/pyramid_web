@@ -115,7 +115,10 @@ def filter_response(allow_origin, do_result=None, err_result=None):
             else:
                 request = args[0]
             if allow_origin:
-                request.response.headers['Access-Control-Allow-Origin'] = '*'
+                if hasattr(request, 'response'):
+                    request.response.headers['Access-Control-Allow-Origin'] = '*'
+                else:
+                    getattr(request, 'request').response.headers['Access-Control-Allow-Origin'] = '*'
             try:
                 ret = func(request, **kwargs)
                 if callable(do_result):
