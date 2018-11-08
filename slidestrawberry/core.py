@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # coding=utf-8
-
 #
 # Copyright (c) 2015-2018  Terry Xi
 # All Rights Reserved.
@@ -45,22 +44,44 @@ def with_version(version_id, name):
         return str(name) + '_' + str(version_id)
 
 
-def filter_session(autoremove):
+def _result_pass(r):
+    _ret = {
+        'data': r,
+        'status': 200,
+    }
+    return _ret
+
+
+def _result_fail(e):
+    _status = 200
+    if hasattr(e, 'code'):
+        _status = getattr(e, 'code')
+    return {
+        'data': {},
+        'status': _status,
+        'err_msg': e.message,
+    }
+
+
+def filter_session(autoremove, do_result=None, err_result=None):
     """
     用于处理会话
 
     :param autoremove: 自动释放会话资源
+    :param do_result: 处理正常结果函数
+    :param err_result: 处理错误结果函数
     :return:
     """
 
     def _filter_session(func):
         @functools.wraps(func)
         def __filter_session(*args, **kwargs):
+            if len(args) == 2:
+                root_factory, request = args
+            else:
+                request = args[0]
+
             try:
-                if len(args) == 2:
-                    root_factory, request = args
-                else:
-                    request = args[0]
                 ret = func(request, **kwargs)
                 if autoremove:
                     if hasattr(request, 'request'):
@@ -71,56 +92,62 @@ def filter_session(autoremove):
                         mark_changed(_session)
                         # if hasattr(_session, 'close'):
                         #     _session.close()
-                logger.info('Response:{0}'.format(ret))
-                return ret
-            except BaseException:
+                if callable(do_result):
+                    _ret = do_result(ret)
+                else:
+                    _ret = _result_pass(ret)
+                logger.info('Response:{0}'.format(_ret))
+                return _ret
+            except HTTPNotFound:
+                return not_found(request)
+            except Exception as e:
+                request.response.status_int = 500
                 import traceback
                 logger.error(traceback.format_exc())
-                return Response(
-                    json.dumps([]),
-                    500,
-                    headers={
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
-                    })
+                if callable(err_result):
+                    return err_result(e)
+                else:
+                    return _result_fail(e)
 
         return __filter_session
 
     return _filter_session
 
 
-def filter_response(allow_origin):
+def filter_response(allow_origin, do_result=None, err_result=None):
     """
     用于处理返回结果
 
     :param allow_origin: 是否支持跨域
+    :param do_result: 处理正常结果函数
+    :param err_result: 处理错误结果函数
     :return:
     """
 
     def _filter_response(func):
         @functools.wraps(func)
         def __filter_response(*args, **kwargs):
+            if len(args) == 2:
+                root_factory, request = args
+            else:
+                request = args[0]
+            if allow_origin:
+                request.response.headers['Access-Control-Allow-Origin'] = '*'
             try:
-                if len(args) == 2:
-                    root_factory, request = args
-                else:
-                    request = args[0]
-                if allow_origin:
-                    request.response.headers[
-                        'Access-Control-Allow-Origin'] = '*'
                 ret = func(request, **kwargs)
-                logger.info('Response:{0}'.format(ret))
-                return ret
-            except BaseException:
+                _ret = _result_pass(ret)
+                logger.info('Response:{0}'.format(_ret))
+                return _ret
+            except HTTPNotFound:
+                return not_found(request)
+            except Exception as e:
+                request.response.status_int = 500
                 import traceback
                 logger.error(traceback.format_exc())
-                return Response(
-                    json.dumps([]),
-                    500,
-                    headers={
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
-                    })
+                if callable(err_result):
+                    return err_result(e)
+                else:
+                    return _result_fail(e)
 
         return __filter_response
 
@@ -237,12 +264,12 @@ def check_request_params(arg_name,
                 if not _key:
                     logger.error(
                         'check arg_name:{0} failed, expect:{1}, unexpected:{2}'.
-                        format(arg_name, _expect_value, _unexpected_value))
+                            format(arg_name, _expect_value, _unexpected_value))
                 else:
                     logger.error(
                         'check arg_name:{0} failed, error key:{1} expect:{2}, unexpected:{3}'.
-                        format(arg_name, _key, _expect_value,
-                               _unexpected_value))
+                            format(arg_name, _key, _expect_value,
+                                   _unexpected_value))
                 return Response(
                     json.dumps(err_result),
                     500,
@@ -319,6 +346,21 @@ class BaseHandler(object):
     def __init__(self, request):
         self.request = request
         self.data = dict()
+        self.origin = False
+        self.pass_result = None
+        self.err_result = None
+
+    def set_result(self, do_result=None, err_result=None):
+        if callable(do_result):
+            self.pass_result = do_result
+        if callable(err_result):
+            self.err_result = err_result
+
+    def enable_origin(self):
+        self.origin = True
+
+    def disable_origin(self):
+        self.origin = False
 
     def before(self):
         pass
@@ -337,23 +379,25 @@ class BaseHandler(object):
         _ret, _err, _status = {}, None, 200
         if self.request.method in _action:
             self.before()
+            if self.origin:
+                self.request.response.headers['Access-Control-Allow-Origin'] = '*'
             try:
                 _ret = _action[self.request.method]()
+                if self.pass_result:
+                    _ret = self.pass_result(_ret)
+                else:
+                    _ret = _result_pass(_ret)
             except HTTPNotFound:
                 return not_found(self.request)
             except Exception as e:
+                self.request.response.status_int = 500
                 import traceback
                 logger.error(traceback.format_exc())
-                _err = e
-                if hasattr(e, 'code'):
-                    _status = getattr(e, 'code')
+                if self.err_result:
+                    _ret = self.err_result(e)
+                else:
+                    _ret = _result_fail(e)
             self.after()
-        _ret = {
-            'data': _ret,
-            'code': _status
-        }
-        if _err:
-            _ret['err_msg'] = _err.message
         return _ret
 
     def post(self):
