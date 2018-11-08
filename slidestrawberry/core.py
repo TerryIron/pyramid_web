@@ -63,13 +63,11 @@ def _result_fail(e):
     }
 
 
-def filter_session(autoremove, do_result=None, err_result=None):
+def filter_session(autoremove):
     """
     用于处理会话
 
     :param autoremove: 自动释放会话资源
-    :param do_result: 处理正常结果函数
-    :param err_result: 处理错误结果函数
     :return:
     """
 
@@ -81,33 +79,18 @@ def filter_session(autoremove, do_result=None, err_result=None):
             else:
                 request = args[0]
 
-            try:
-                ret = func(request, **kwargs)
-                if autoremove:
-                    if hasattr(request, 'request'):
-                        request = getattr(request, 'request')
-                    if hasattr(request, 'dbsession'):
-                        _session = getattr(request, 'dbsession')
-                        from zope.sqlalchemy import mark_changed
-                        mark_changed(_session)
-                        # if hasattr(_session, 'close'):
-                        #     _session.close()
-                if callable(do_result):
-                    _ret = do_result(ret)
-                else:
-                    _ret = _result_pass(ret)
-                logger.info('Response:{0}'.format(_ret))
-                return _ret
-            except HTTPNotFound:
-                return not_found(request)
-            except Exception as e:
-                request.response.status_int = 500
-                import traceback
-                logger.error(traceback.format_exc())
-                if callable(err_result):
-                    return err_result(e)
-                else:
-                    return _result_fail(e)
+            ret = func(request, **kwargs)
+            if autoremove:
+                if hasattr(request, 'request'):
+                    request = getattr(request, 'request')
+                if hasattr(request, 'dbsession'):
+                    _session = getattr(request, 'dbsession')
+                    from zope.sqlalchemy import mark_changed
+                    mark_changed(_session)
+                    # if hasattr(_session, 'close'):
+                    #     _session.close()
+            logger.info('Response:{0}'.format(ret))
+            return ret
 
         return __filter_session
 
@@ -135,7 +118,10 @@ def filter_response(allow_origin, do_result=None, err_result=None):
                 request.response.headers['Access-Control-Allow-Origin'] = '*'
             try:
                 ret = func(request, **kwargs)
-                _ret = _result_pass(ret)
+                if callable(do_result):
+                    _ret = do_result(ret)
+                else:
+                    _ret = _result_pass(ret)
                 logger.info('Response:{0}'.format(_ret))
                 return _ret
             except HTTPNotFound:
@@ -169,7 +155,9 @@ def check_request_params(arg_name,
                          unexpected_arg_name=None,
                          unexpected_out_name=None,
                          out_param_name='dict',
-                         out_values_param_name='parm'):
+                         out_values_param_name='parm',
+                         request_target=None,
+                         request_target_arg_name='params'):
     """
     用于检查和处理请求参数
 
@@ -188,7 +176,9 @@ def check_request_params(arg_name,
     :param unexpected_arg_name: 参数可用于判断函数（不可接受范围）
     :param unexpected_out_name: 不可接受函数输出变量名
     :param out_param_name: 请求参数保存变量对象名称
-    :param out_values_param_name:
+    :param out_values_param_name: 请求期望或非期望值保存对象
+    :param request_target: 请求对象
+    :param request_target_arg_name: 请求对象参数
     :return:
     """
 
@@ -201,11 +191,14 @@ def check_request_params(arg_name,
         @functools.wraps(func)
         def __request_checker(request, *args, **kwargs):
             _request = None
-            if not hasattr(request, 'params'):
+            if request_target:
+                _request = request
+                request = request_target
+            if hasattr(request, 'request'):
                 _request = request
                 request = _request.request
             logger.info('request:{0} check on {1}, params:{2}'.format(
-                request, arg_name, request.params))
+                request, arg_name, getattr(request, request_target_arg_name)))
             if not hasattr(request, out_values_param_name):
                 setattr(request, out_values_param_name, {})
             if default_value is not None:
@@ -214,24 +207,18 @@ def check_request_params(arg_name,
                     default_value()
                     if callable(default_value) else default_value)
             else:
-                _arg_value = request.params.get(arg_name, NotFound())
+                _arg_value = getattr(request, request_target_arg_name).get(arg_name, NotFound())
             if need_exist and isinstance(_arg_value, NotFound):
                 _need_back = True
                 if or_exist_args:
                     for _or_exist in or_exist_args:
-                        if request.params.get(_or_exist):
+                        if getattr(request, request_target_arg_name).get(_or_exist):
                             _need_back = False
                             break
                 if _need_back:
                     logger.error(
                         'check arg_name:{0} is not exist'.format(arg_name))
-                    return Response(
-                        json.dumps(err_result),
-                        500,
-                        headers={
-                            'Content-Type': 'application/json',
-                            'Access-Control-Allow-Origin': '*'
-                        })
+                    return err_result
             if callable(expect_values):
                 if expect_request_arg_name:
                     _expect_value = expect_values(
@@ -241,7 +228,7 @@ def check_request_params(arg_name,
             else:
                 _expect_value = expect_values
             if expect_arg_name:
-                _expect_value = request.params.get(expect_arg_name)
+                _expect_value = getattr(request, request_target_arg_name).get(expect_arg_name)
             if expect_out_name:
                 _values_dict = getattr(request, out_values_param_name)
                 _values_dict[expect_out_name] = _expect_value
@@ -255,7 +242,7 @@ def check_request_params(arg_name,
             else:
                 _unexpected_value = unexpected_values
             if unexpected_arg_name:
-                _unexpected_value = request.params.get(unexpected_arg_name)
+                _unexpected_value = getattr(request, request_target_arg_name).get(unexpected_arg_name)
             if unexpected_out_name:
                 _values_dict = getattr(request, out_values_param_name)
                 _values_dict[unexpected_out_name] = _unexpected_value
@@ -264,19 +251,13 @@ def check_request_params(arg_name,
                 if not _key:
                     logger.error(
                         'check arg_name:{0} failed, expect:{1}, unexpected:{2}'.
-                            format(arg_name, _expect_value, _unexpected_value))
+                        format(arg_name, _expect_value, _unexpected_value))
                 else:
                     logger.error(
                         'check arg_name:{0} failed, error key:{1} expect:{2}, unexpected:{3}'.
-                            format(arg_name, _key, _expect_value,
-                                   _unexpected_value))
-                return Response(
-                    json.dumps(err_result),
-                    500,
-                    headers={
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
-                    })
+                        format(arg_name, _key, _expect_value,
+                               _unexpected_value))
+                return err_result
 
             if _arg_value:
                 if arg_parser and not isinstance(_arg_value, NotFound):
@@ -298,7 +279,7 @@ def check_request_params(arg_name,
             _request_dict = getattr(request, out_param_name)
             _request_dict[arg_name] = _arg_value
             logger.info('request check off {0}, params:{1}'.format(
-                arg_name, request.params))
+                arg_name, getattr(request, request_target_arg_name)))
             if _request:
                 request = _request
             return func(request, *args, **kwargs)
