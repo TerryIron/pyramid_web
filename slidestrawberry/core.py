@@ -130,9 +130,12 @@ def filter_response(allow_origin, do_result=None, err_result=None):
             except HTTPNotFound:
                 return not_found(request)
             except Exception as e:
-                request.response.status_int = 500
                 import traceback
                 logger.error(traceback.format_exc())
+                if hasattr(request, 'response'):
+                    request.response.status_int = 500
+                else:
+                    getattr(request, 'request').response.status_int = 500
                 if callable(err_result):
                     return err_result(e)
                 else:
