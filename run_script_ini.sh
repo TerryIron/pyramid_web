@@ -39,6 +39,13 @@ sed -i 's/^listen\ \{0,\}=\ \{0,\}\(.*\)/listen = '"$PORT_TEXT"'/' $CONFIG
 log_path="/tmp/run_ini"
 log_file="$log_path/`echo $RANDOM|md5sum|cut -c 1-10`.log"
 mkdir -p $log_path
-python $(which pserve) $CONFIG &> $log_file &
+> $log_file
+python $(which pserve) $CONFIG 2>&1 | tee -a $log_file &
 log_pid=$!
-tail -f $log_file | awk 'BEGIN{a=0;kcmd="kill -9 '$log_pid'";rcmd="rm -f '$log_file'"}{if(match($0, "set task off")){system(kcmd)system(rcmd)}}'
+server_pid=$(netstat -tanp | grep "0.0.0.0:$PORT" | awk '{print $7}' | sed -n 's/\(.*\)\/.*/\1/p')
+[ "$server_pid" == "" ] && {
+    server_pid=$(($log_pid - 1))
+}
+father_pid=$(ps -ef  | grep -v grep | grep $log_pid | awk '{print $3}')
+sleep 3
+tail -100f $log_file | awk 'BEGIN{a=0;kcmd="kill -9 '$log_pid' '$server_pid' '$father_pid'";dd="rm -f '$log_file'"}{if(match($0, ".*Server Starting.*") > 0)a+=1;else if(a == 1)system(kcmd)system(dd)}' 2>/dev/null
