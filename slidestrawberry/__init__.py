@@ -18,10 +18,18 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import platform
 from pyramid.config import Configurator
 from pyramid_celery import celery_app as app
 
+from slidestrawberry.service.log import get_logger
+
+
 __version__ = (0, 1, 0)
+
+
+logger = get_logger(__name__)
+
 
 GLOBAL_CONFIG = {}
 
@@ -49,4 +57,18 @@ def main(global_config, **settings):
     config.configure_celery(file_name)
     app.ONE = {}
     config.scan('.views')
-    return config.make_wsgi_app()
+    server = config.make_wsgi_app()
+    logger.info('Server Starting')
+    logger.info('Server python version: {}'.format(platform.python_version()))
+    logger.info('Server version: {}'.format('.'.join([str(s) for s in __version__])))
+    logger.info('Server OS system: {}'.format(' '.join(platform.uname())))
+    logger.info('Server Global config:{}'.format(global_config))
+    logger.info('Server Local config:{}'.format(settings))
+    logger.info('Server Config file:{}'.format(file_name))
+    logger.info('Server init plugins done')
+    logger.info('Server init models done')
+    logger.info('Server init handlers done')
+    logger.info('Server init celery done')
+    logger.info('Server Started')
+    return server
+ 
