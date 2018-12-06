@@ -48,4 +48,4 @@ server_pid=$(netstat -tanp | grep "0.0.0.0:$PORT" | awk '{print $7}' | sed -n 's
 }
 father_pid=$(ps -ef  | grep -v grep | grep $log_pid | awk '{print $3}')
 sleep 3
-tail -100f $log_file | awk 'BEGIN{a=0;kcmd="kill -9 '$log_pid' '$server_pid' '$father_pid'";dd="rm -f '$log_file'"}{if(match($0, ".*Server Starting.*") > 0)a+=1;else if(a == 1)system(kcmd)system(dd)}' 2>/dev/null
+tail -100f $log_file | awk 'BEGIN{a=0;fcmd="ps axo pid,comm,cmd|grep '$log_file'|grep tail|grep -v grep |cut -dt -f1|xargs kill -9";kcmd="kill -9 '$log_pid' '$server_pid' '$father_pid'";dd="rm -f '$log_file'"}{if(match($0, ".*Server Starting.*") > 0)a+=1;else if(a == 1)system(kcmd)system(dd)system(fcmd)}' 2>/dev/null
