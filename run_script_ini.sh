@@ -30,8 +30,8 @@ PORT_TEXT="0.0.0.0:$PORT"
     }
 }
 
-for i in $(find | grep setup.py$); do 
-    j=$(dirname $i); 
+for i in $(find | grep -v "^./env*\|.*env/" |grep setup.py$); do
+    j=$(dirname $i);
     [ "$j" != "." ] && {
         cd $j && python setup.py bdist_egg && cd -
     }
