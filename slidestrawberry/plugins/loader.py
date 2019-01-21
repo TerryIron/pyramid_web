@@ -191,7 +191,7 @@ class PluginLoader(object):
             setattr(d, 'logger', cls.get_logger('.'.join(['core', name])))
             setattr(d, 'logger_name', '.'.join(['core', name]))
             _config = dict()
-            for i in list(cls.result_channel) + list(cls.config_channel):
+            for i in cls.result_channel:
                 _config[i] = dict()
             return _call(d, **_config)
 
