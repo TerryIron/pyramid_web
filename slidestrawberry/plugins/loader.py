@@ -185,6 +185,11 @@ class PluginLoader(object):
             _call = getattr(_plugin, call)
             d = cls.Loader()
             setattr(d, 'config', config)
+            setattr(d, 'channel_scope', cls.result_channel)
+            setattr(d, 'config_channel', cls.config_channel)
+            setattr(d, 'current_channel', cls.result_channel[0])
+            setattr(d, 'logger', cls.get_logger('.'.join(['core', name])))
+            setattr(d, 'logger_name', '.'.join(['core', name]))
             _config = dict()
             for i in list(cls.result_channel) + list(cls.config_channel):
                 _config[i] = dict()
