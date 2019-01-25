@@ -268,10 +268,21 @@ class PluginLoader(object):
         return plugin_path
 
     @classmethod
-    def get_plugin_path(cls):
+    def get_plugin_path(cls, home='env'):
         import os.path
+        _plugin_path_list = []
         _plugin_path = os.path.abspath(os.path.dirname(__file__))
-        return _plugin_path
+        _plugin_split = _plugin_path.split('/')
+        addable = True
+        for i in _plugin_split:
+            if i == home:
+                addable = False
+            if i.endswith('.egg'):
+                addable = True
+                continue
+            if addable:
+                _plugin_path_list.append(i)
+        return '/'.join(_plugin_path_list)
 
     @classmethod
     def get_plugin_import_path(cls, name, lang='python2'):
@@ -487,13 +498,14 @@ class PluginLoader(object):
         return cls.run_plugins()
 
     @classmethod
-    def start_plugins(cls):
+    def start_plugins(cls, load_eventloop=True):
         cls._LOGGER = cls.get_logger(__name__)
         _path = cls.init_plugins()
 
         def _start_plugins():
             cls._load_plugins(_path)
-            cls._run_plugins()
+            if load_eventloop:
+                cls._run_plugins()
 
         cls.pool.apply_async(_start_plugins())
 
@@ -522,6 +534,9 @@ class PluginLoaderV1(PluginLoader):
 
         config = get_plugin_config()
         p = ConfigParser()
+        if hasattr(c, '__file__'):
+            if not config.startswith('/'):
+                config = os.path.join(os.path.dirname(getattr(c, '__file__')), config)
         p.read(config)
 
         global_plugin = {}

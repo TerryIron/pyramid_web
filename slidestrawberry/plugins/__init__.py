@@ -17,10 +17,11 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+
 from slidestrawberry.plugins.loader import PluginLoaderV1
 
 
-def includeme(config):
+def includeme(config, load_plugin=False, load_eventloop=True):
     """
     Initialize plugins for an application.
 
@@ -38,12 +39,14 @@ def includeme(config):
     class _PluginLoaderV1(PluginLoaderV1):
         @classmethod
         def start(cls):
-            cls.start_plugins()
+            cls.start_plugins(load_eventloop=load_eventloop)
 
         @classmethod
         def load_plugins(cls, plugin_path):
             c = ConfigParser()
             c.read(settings['__file__'])
+            if load_plugin:
+                setattr(c, '__file__', settings['__file__'])
             cls.load_plugins_from_config(c)
 
     _PluginLoaderV1.start()
