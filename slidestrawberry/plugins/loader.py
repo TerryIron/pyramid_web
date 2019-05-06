@@ -139,6 +139,7 @@ class PluginLoader(object):
     plugin_generator = {}  # 插件数据生成器配置, 如{'pluginA': {NAME: GENERATOR}}
     plugin_registry = {}  # 插件action入口, 如{'pluginA': {NAME: FUNC}}
     plugin_public_registry = {}  # 插件public_action配置, 如{'pluginA': [NAME]}
+    plugin_imports = {}  # 插件init配置, 如{'pluginA': {ACTION: NAME.ACTION}}
     plugin_init = {}  # 插件init配置, 如{'pluginA': [NAME]}
     plugin_call = {}  # 插件call配置, 如{'pluginA': [NAME]}
     plugin_lang = {}  # 插件私有环境, 如{'pluginA': 'python'}
@@ -153,6 +154,7 @@ class PluginLoader(object):
     results = Result()
     config_channel = 'config'
     result_channel = tuple(['data', 'result'] + [config_channel])
+    git_host = 'https://pypi.douban.com/simple/'
 
     globals = {}
     paths = []
@@ -260,8 +262,61 @@ class PluginLoader(object):
         cls.__plug_globals__[name] = p
 
     @classmethod
-    def load_plugins(cls, plugin_path):
-        pass
+    def reload_plugin(cls, plugin_name, plugin_action, plugin_version='0.1.0'):
+        import os
+
+        _globals = globals()
+        if plugin_name in cls.plugin_lang:
+            _app_lang = cls.plugin_lang[plugin_name]
+            _globals['sys'] = cls.get_plugin_import_path(plugin_name, _app_lang)
+
+        if plugin_name in cls.__plug_globals__ \
+                and plugin_name in cls.plugin_imports \
+                and plugin_action in cls.plugin_imports[plugin_name] \
+                and plugin_name in cls.plugin_generator \
+                and plugin_action in cls.plugin_generator[plugin_name] \
+                and plugin_name in cls.plugin_registry \
+                and plugin_action in cls.plugin_registry[plugin_name]:
+
+            plugin_path = cls.get_plugin_path()
+            _plugin_home = os.path.join(plugin_path, plugin_name)
+
+            app_config = os.path.join(_plugin_home, 'app.json')
+            if not os.path.exists(_plugin_home):
+                app_json = json.load(open(app_config))
+                app_requirements = app_json.get('imports',
+                                                'requirements.txt')
+
+                _cmd = 'cd {} && virtualenv env --no-site-packages ' \
+                       '&&. env/bin/activate && pip install -r {} -i {} && cd -'
+                commands.getoutput(_cmd.format(_plugin_home, app_requirements, cls.git_host))
+
+            _import_names = cls.plugin_imports[plugin_name][plugin_action]
+            _import_name = _import_names.split('.')[0]
+            _mod = __import__(_import_names, _globals, locals(),
+                              _import_name)
+            _callable = getattr(_mod, plugin_action)
+            if callable(_callable):
+                cls.plugin_registry[plugin_name][plugin_action] = _callable
+                cls.plugin_generator[plugin_name][plugin_action] = _callable
+
+            import abc
+
+            class PluginBase(object):
+                __metaclass__ = abc.ABCMeta
+                __name__ = plugin_name
+                __version__ = plugin_version
+
+            p = PluginBase()
+            for n, f in cls.plugin_registry[plugin_name].items():
+                if n not in cls.plugin_public_registry[plugin_name]:
+                    continue
+                setattr(p, n, f)
+            cls.plugin_registry[plugin_name][cls.plugin_init[plugin_name]]()
+            cls.__plug_globals__[plugin_name] = p
+            cls._LOGGER.warn('Plugin:{} action:{}, version:{}'.format(plugin_name,
+                                                                      plugin_action,
+                                                                      plugin_version))
 
     @classmethod
     def init_plugins(cls, plugin_path=op.abspath(op.dirname(__file__))):
@@ -346,6 +401,7 @@ class PluginLoader(object):
             env = cls._plugin_environ(_name, _real_func)
             # call plugin function
             d = getattr(cls.plugin_loader, pipe_name)
+            setattr(d, 'reload_plugin', cls.reload_plugin)
             setattr(d, 'channel_scope', cls.result_channel)
             setattr(d, 'config_channel', cls.config_channel)
             setattr(d, 'current_channel', channel)
@@ -565,11 +621,10 @@ class PluginLoaderV1(PluginLoader):
                     app_requirements = app_json.get('imports',
                                                     'requirements.txt')
 
-                    _repo = 'https://pypi.douban.com/simple/'
                     _cmd = 'cd {} && virtualenv env --no-site-packages ' \
                            '&&. env/bin/activate && pip install -r {} -i {} && cd -'
                     commands.getoutput(
-                        _cmd.format(_plugin_home, app_requirements, _repo))
+                        _cmd.format(_plugin_home, app_requirements, cls.git_host))
                 else:
                     cls._LOGGER.info('Plugin:{} start'.format(_plugin_home))
                     app_json = json.load(open(app_config))
@@ -601,6 +656,9 @@ class PluginLoaderV1(PluginLoader):
                         _mod = __import__(_callable_mods, _globals, locals(),
                                           _callable_mod)
                         _callable = getattr(_mod, _callable_name)
+                        if app_name not in cls.plugin_imports:
+                            cls.plugin_imports[app_name] = {}
+                        cls.plugin_imports[app_name][_callable_name] = _callable_mods
                     except Exception as e:
                         import traceback
                         cls._LOGGER.error(traceback.format_exc())
