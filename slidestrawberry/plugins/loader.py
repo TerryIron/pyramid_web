@@ -401,6 +401,7 @@ class PluginLoader(object):
             env = cls._plugin_environ(_name, _real_func)
             # call plugin function
             d = getattr(cls.plugin_loader, pipe_name)
+            setattr(d, 'current_pipeline', cls.plugin_pipeline[pipe_name])
             setattr(d, 'reload_plugin', cls.reload_plugin)
             setattr(d, 'channel_scope', cls.result_channel)
             setattr(d, 'config_channel', cls.config_channel)
