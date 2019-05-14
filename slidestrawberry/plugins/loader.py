@@ -264,6 +264,7 @@ class PluginLoader(object):
     @classmethod
     def reload_plugin(cls, plugin_name, plugin_action, plugin_version='0.1.0'):
         import os
+        import json
 
         _globals = globals()
         if plugin_name in cls.plugin_lang:
