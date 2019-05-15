@@ -15,4 +15,5 @@ def kill_process(pid):
 if __name__ == '__main__':
     pid = sys.argv[1]
     kill_process(pid)
+    kill_process(pid)
 
