@@ -181,7 +181,7 @@ class PluginLoader(object):
             _name] if _name in cls.__plug_globals__ else None
 
     @classmethod
-    def run_plugin(cls, name, call, **config):
+    def run_plugin(cls, name, call, data=[], **config):
         _plugin = cls.import_plugin(name)
         if _plugin and hasattr(_plugin, call) and callable(getattr(_plugin, call)):
             _call = getattr(_plugin, call)
@@ -193,8 +193,12 @@ class PluginLoader(object):
             setattr(d, 'logger', cls.get_logger('.'.join(['core', name])))
             setattr(d, 'logger_name', '.'.join(['core', name]))
             _config = dict()
-            for i in cls.result_channel:
-                _config[i] = dict()
+            _config['config'] = dict()
+            _config['result'] = tuple([dict()])
+            if isinstance(data, (list, tuple)):
+                _config['data'] = tuple([i for i in data])
+            else:
+                _config['data'] = tuple([data])
             return _call(d, **_config)
 
     @classmethod
@@ -288,6 +292,7 @@ class PluginLoader(object):
                 app_requirements = app_json.get('imports',
                                                 'requirements.txt')
 
+                import commands
                 _cmd = 'cd {} && virtualenv env --no-site-packages ' \
                        '&&. env/bin/activate && pip install -r {} -i {} && cd -'
                 commands.getoutput(_cmd.format(_plugin_home, app_requirements, cls.git_host))
@@ -420,13 +425,22 @@ class PluginLoader(object):
 
             env['__runner__'] = False
 
-            exec (
-                'if not isinstance({1}, types.GeneratorType) and '
-                'not isinstance(__result__.{0}, types.GeneratorType): '
-                '__result__.{0}, __runner__ = {1}({2}, '
-                '**(__result__.{0} or '
-                'dict(data=dict(), result=dict(), config=dict()))), True'.format(
-                    pipe_name, _name, '__loader__'), env)
+            _expr = """
+if not isinstance({1}, types.GeneratorType) and not isinstance(__result__.{0}, types.GeneratorType):
+    __kw__ = __result__.{0} if __result__.{0} else dict(data=dict(), result=dict(), config=dict())
+    if 'config' not in __kw__:
+        __kw__['config'] = dict()
+    if 'data' not in __kw__:
+        __kw__['data'] = dict()
+    if 'result' not in __kw__:
+        __kw__['result'] = dict()
+    __kw__['data'] = tuple(__kw__['data']) if isinstance(__kw__['data'], list) else __kw__['data']
+    __kw__['data'] = tuple([__kw__['data']]) if not isinstance(__kw__['data'], tuple) else __kw__['data']
+    __kw__['result'] = tuple(__kw__['result']) if isinstance(__kw__['result'], list) else __kw__['data']
+    __kw__['result'] = tuple([__kw__['result']]) if not isinstance(__kw__['result'], tuple) else __kw__['data']
+    __result__.{0}, __runner__ = {1}({2}, **__kw__), True
+            """
+            exec(_expr.format(pipe_name, _name, '__loader__'), env)
             exec ('if __runner__: __call__ = {0}'.format(_name), env)
 
             env['__runner__'] = False
