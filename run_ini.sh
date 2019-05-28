@@ -35,4 +35,5 @@ done
 export PYTHONPATH=$PWD
 cd $PWD
 sed -i 's/^listen\ \{0,\}=\ \{0,\}\(.*\)/listen = '"$PORT_TEXT"'/' $CONFIG
+export PYTHONOPTIMIZE=1
 python $(which pserve) $CONFIG
