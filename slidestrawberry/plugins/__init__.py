@@ -18,6 +18,7 @@
 #
 
 
+import os
 from slidestrawberry.plugins.loader import PluginLoaderV1
 
 
@@ -50,3 +51,12 @@ def includeme(config, load_plugin=False, load_eventloop=True):
             cls.load_plugins_from_config(c)
 
     _PluginLoaderV1.start()
+
+    _plugin_path = os.path.dirname(__file__)
+    for i in os.listdir(_plugin_path):
+        api_file = os.path.join(os.path.join(_plugin_path, i), 'routes.py')
+        if os.path.exists(api_file):
+            _mod = __import__('{}.routes'.format(i), globals(), locals(), ['routes'])
+            if hasattr(_mod, 'get_routes') and callable(getattr(_mod, 'get_routes')):
+                for k, v in getattr(_mod, 'get_routes')().items():
+                    config.add_handler(k.replace('/', '_'), k, v)
