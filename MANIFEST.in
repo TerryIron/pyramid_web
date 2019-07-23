@@ -1,2 +1,2 @@
-include *.txt *.ini *.cfg *.rst slidestrawberry/plugins/*.zip
-recursive-include slidestrawberry *.ico *.png *.css *.gif *.jpg *.jinja2 *.pt *.txt *.mak *.mako *.js *.html *.xml
+include *.txt *.ini *.cfg *.rst pyramid_web/plugins/*.zip
+recursive-include pyramid_web *.ico *.png *.css *.gif *.jpg *.jinja2 *.pt *.txt *.mak *.mako *.js *.html *.xml

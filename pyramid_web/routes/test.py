@@ -18,39 +18,26 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from pyramid.view import view_config
-from pyramid_handlers import action
+from pyramid.response import Response
 
-from slidestrawberry.core import with_version, filter_response, check_request_params, BaseHandler
-from slidestrawberry.service.log import get_logger
-
-__author__ = 'terry'
-
-logger = get_logger(__name__)
-
-VERSION = '1.0'
+from pyramid_web.core import with_version
+from pyramid_web.view.v1.test import Test as test_handler
 
 
-@view_config(
-    route_name=with_version(VERSION, 'test'),
-    request_method=('GET', 'POST'),
-    renderer='json')
-@check_request_params('test', expect_values=['test'], need_exist=True)
-@filter_response(True)
-def test(request):
-    pass
+def includeme(config):
+    """
+    初始化路由
 
+    :param config: 配置表
+    :return:
+    """
 
+    # -- API版本 --
+    _version = '1.0'
 
-class Test(BaseHandler):
-    def get(self):
-        pass
-
-    def post(self):
-        pass
-
-    def put(self):
-        pass
-
-    def delete(self):
-        pass
+    # API
+    config.add_route(
+        with_version(_version, 'test'), with_version(_version, '/test'))
+    # RestAPI
+    config.add_handler(
+        with_version(_version, 'test_handler'), with_version(_version, '/test_handler'), test_handler)

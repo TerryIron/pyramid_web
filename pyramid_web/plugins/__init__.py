@@ -19,7 +19,7 @@
 
 
 import os
-from slidestrawberry.plugins.loader import PluginLoaderV1
+from pyramid_web.plugins.loader import PluginLoaderV1
 
 
 def includeme(config, load_plugin=False, load_eventloop=True):

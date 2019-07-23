@@ -1,0 +1,18 @@
+{
+    "version": "0.1.0",
+    "type": "basic",
+    "name": "sample",
+    "language": "python2",
+    "imports": "requirements.txt",
+    "actions": {
+        "init": "app.init",
+        "start": "app.start",
+        "stop": "app.stop"
+    },
+    "public_actions": [
+        "start",
+        "stop"
+    ],
+    "init": "init",
+    "call": "start"
+}
