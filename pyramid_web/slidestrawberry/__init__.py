@@ -22,7 +22,7 @@ import platform
 from pyramid.config import Configurator
 from pyramid_celery import celery_app as app
 
-from slidestrawberry.service.log import get_logger
+from pyramid_web.service.log import get_logger
 
 
 __version__ = (0, 1, 0)

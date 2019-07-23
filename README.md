@@ -1,4 +1,4 @@
-# slidestrawberry 简介
+# pyramid_web 简介
 
 ## Getting Started(如何部署启动)
 * 进入安装目录

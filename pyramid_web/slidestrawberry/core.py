@@ -23,7 +23,7 @@ import functools
 import json
 import logging
 
-from slidestrawberry.views.notfound import not_found
+from pyramid_web.views.notfound import not_found
 
 logger = logging.getLogger(__name__)
 

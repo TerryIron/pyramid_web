@@ -28,7 +28,7 @@ with open(os.path.join(here, 'README.md')) as f:
 with open(os.path.join(here, 'CHANGELOG.md')) as f:
     CHANGES = f.read()
 
-import slidestrawberry
+import pyramid_web
 
 requires = [
     'pyramid',
@@ -48,9 +48,9 @@ tests_require = [
 ]
 
 setup(
-    name='slidestrawberry',
-    version='.'.join([str(v) for v in slidestrawberry.__version__]),
-    description='slidestrawberry',
+    name='pyramid_web',
+    version='.'.join([str(v) for v in pyramid_web.__version__]),
+    description='pyramid_web',
     long_description=README + '\n\n' + CHANGES,
     classifiers=[
         "Programming Language :: Python",
@@ -71,8 +71,8 @@ setup(
     install_requires=requires,
     entry_points="""\
       [paste.app_factory]
-      main = slidestrawberry:main
+      main = pyramid_web:main
       [console_scripts]
-      initialize_db = slidestrawberry.scripts.initializedb:main
+      initialize_db = pyramid_web.scripts.initializedb:main
       """,
 )

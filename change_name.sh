@@ -1,6 +1,6 @@
 #!/bin/bash
 
-old_name="slidestrawberry"
+old_name="pyramid_web"
 new_name=$1
 [ "$old_name" != "" ] && [ "$new_name" != "" ] && {
 
