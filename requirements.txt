@@ -29,7 +29,7 @@ gevent
 psycopg2
 psycopg2-binary
 zope.sqlalchemy
-setuptools==41.0.1
+setuptools==65.5.1
 happybase
 mongoengine
 pymssql==2.1.3
